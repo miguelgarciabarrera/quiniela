@@ -169,11 +169,19 @@
   }
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 20px); } }
   @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 20px); } }
+
+  .sync-chip {
+    position: absolute; top: 14px; right: 20px;
+    font-size: 12px; color: var(--muted);
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px 10px;
+  }
 </style>
 </head>
 <body>
 
 <header>
+  <span class="sync-chip" id="syncStatus">⏳ connecting…</span>
   <h1>⚽ Quiniela <span>Mundial 2026</span></h1>
   <p class="tagline" id="tagline"></p>
   <div class="leaderboard" id="leaderboard"></div>
@@ -359,6 +367,7 @@ function load() {
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  scheduleCloudPush();
 }
 
 function allMatches() {
@@ -601,9 +610,100 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+// ---- cloud sync: one shared pool through /api/state ----
+// localStorage stays as the instant-load cache and offline fallback; the
+// blob-backed document (rev-numbered) is the source of truth for the group.
+const API_URL = "/api/state";
+const SYNC_KEY = STORAGE_KEY + "-sync";
+let cloudRev = 0;
+let dirty = false;     // local edits not yet accepted by the server
+let pushTimer = null;
+
+try {
+  const meta = JSON.parse(localStorage.getItem(SYNC_KEY) || "{}");
+  cloudRev = meta.rev || 0;
+  dirty = !!meta.dirty;
+} catch (e) { /* fresh device */ }
+
+function saveSyncMeta() {
+  localStorage.setItem(SYNC_KEY, JSON.stringify({ rev: cloudRev, dirty }));
+}
+
+function setSync(text) {
+  document.getElementById("syncStatus").textContent = text;
+}
+
+function adoptCloudDoc(doc) {
+  cloudRev = doc.rev;
+  state = Object.assign(defaultState(), doc.state);
+  dirty = false;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  saveSyncMeta();
+  renderAll();
+}
+
+function scheduleCloudPush() {
+  dirty = true;
+  saveSyncMeta();
+  setSync("☁️ saving…");
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushCloud, 800);
+}
+
+async function pushCloud() {
+  setSync("☁️ saving…");
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ baseRev: cloudRev, state }),
+    });
+    if (res.status === 409) {
+      adoptCloudDoc(await res.json());
+      setSync("☁️ synced");
+      toast("⚠️ Someone else saved first — showing their version. Redo your last change.");
+      return;
+    }
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const out = await res.json();
+    cloudRev = out.rev;
+    dirty = false;
+    saveSyncMeta();
+    setSync("☁️ synced");
+  } catch (e) {
+    setSync("📴 offline — saved on this device, will retry");
+  }
+}
+
+async function pullCloud(initial) {
+  if (dirty) { pushCloud(); return; }
+  // don't yank the table out from under someone mid-keystroke
+  if (!initial && document.activeElement && document.activeElement.tagName === "INPUT") return;
+  try {
+    const res = await fetch(API_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const doc = await res.json();
+    if (doc.state) {
+      if (doc.rev !== cloudRev) adoptCloudDoc(doc);
+      setSync("☁️ synced");
+    } else if (initial) {
+      // empty pool in the cloud: first device online seeds it with its local data
+      dirty = true;
+      pushCloud();
+    } else {
+      setSync("☁️ synced");
+    }
+  } catch (e) {
+    setSync(initial ? "📴 offline — using this device's data" : "📴 offline — will retry");
+  }
+}
+
 document.getElementById("tagline").textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
 document.getElementById("filterSel").addEventListener("change", renderMatches);
 renderAll();
+pullCloud(true);
+setInterval(() => pullCloud(false), 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) pullCloud(false); });
 </script>
 </body>
 </html>

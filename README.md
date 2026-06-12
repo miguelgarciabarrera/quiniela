@@ -27,6 +27,17 @@ Knockout matches get added with the **＋ Add match** button as the bracket fill
 
 ## Data
 
-Everything (picks, results, prophecies, player names) is stored in the browser's
-localStorage on the machine that runs the pool. Use **Export JSON** for backups and
-**Import JSON** to restore or move machines. No server, no accounts, no excuses.
+The pool lives in the cloud: a Vercel serverless function (`api/state.js`) stores one
+shared state document in a private Vercel Blob store, so everyone who opens the site
+sees the same picks, results and leaderboard. Each save bumps a revision number —
+if two people save at once, the second one gets refreshed to the latest version
+instead of silently overwriting it. The last 30 revisions are kept as automatic
+backups in the blob store.
+
+The browser's localStorage doubles as an instant-load cache and offline fallback
+(the header chip shows ☁️ synced / 📴 offline). **Export JSON** still works for manual
+backups and **Import JSON** pushes a backup to the cloud for everyone.
+
+Deployed on Vercel: `npx vercel --prod` ships a new version. Running locally with
+`npm run dev` has no `/api`, so it falls back to offline/local-only mode — use
+`npx vercel dev` if you want the API locally.
