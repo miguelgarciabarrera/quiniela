@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ Quiniela Mundial 2026</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d3748;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --gold: #e3b341;
+    --green: #2ea04326;
+    --green-b: #3fb950;
+    --yellow: #bb800926;
+    --yellow-b: #d29922;
+    --red: #f8514926;
+    --red-b: #f85149;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+  }
+  h1 { margin: 0 0 2px; font-size: 22px; }
+  h1 span { color: var(--gold); }
+  .tagline { color: var(--muted); font-size: 12px; font-style: italic; margin: 0 0 10px; }
+  .leaderboard { display: flex; gap: 10px; flex-wrap: wrap; }
+  .lb-card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+  }
+  .lb-card.first { border-color: var(--gold); box-shadow: 0 0 12px #e3b34133; }
+  .lb-card.last { border-color: var(--red-b); }
+  .lb-top { display: flex; align-items: baseline; gap: 8px; }
+  .lb-name { font-weight: 700; }
+  .lb-pts { color: var(--accent); font-weight: 800; font-size: 18px; margin-left: auto; }
+  .lb-title { font-size: 11px; color: var(--gold); }
+  .lb-card.last .lb-title { color: var(--red-b); }
+  .lb-detail { color: var(--muted); font-size: 11px; }
+  .rules { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+
+  main { padding: 16px 20px 60px; max-width: 1500px; margin: 0 auto; }
+
+  h2 { font-size: 16px; color: var(--gold); margin: 24px 0 4px; }
+  .section-sub { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+
+  .pick-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pick-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    width: 215px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .pick-card input.pname {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 10px; font-size: 15px; font-weight: 700; width: 100%;
+  }
+  .pick-card label { font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
+  .pick-card select {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 8px; font-size: 13px; width: 100%;
+  }
+  .pick-flag-line { font-size: 12px; display: flex; align-items: center; gap: 6px; min-height: 20px; }
+  .pick-flag-line .who { color: var(--muted); }
+  .pick-warn { color: var(--red-b); font-size: 11px; }
+  img.flag { width: 22px; height: 16px; border-radius: 2px; vertical-align: -3px; box-shadow: 0 0 0 1px #00000055; }
+  td img.flag { width: 18px; height: 13px; }
+
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 14px; align-items: center; }
+  button {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button:hover { border-color: var(--accent); }
+  button.danger:hover { border-color: var(--red-b); color: var(--red-b); }
+  select#filterSel {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px;
+  }
+
+  .date-section { margin-top: 22px; }
+  .date-title {
+    font-size: 15px; font-weight: 700; color: var(--gold);
+    border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px;
+  }
+
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: center; vertical-align: middle; }
+  th { background: var(--panel); font-size: 12px; }
+  td.match-cell { text-align: left; background: var(--panel); min-width: 250px; }
+  .m-num { color: var(--muted); font-size: 11px; }
+  .m-teams { font-weight: 600; }
+  .m-group { color: var(--accent); font-size: 11px; }
+
+  .score-pair { display: inline-flex; align-items: center; gap: 3px; }
+  .score-pair input {
+    width: 34px; text-align: center;
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 5px;
+    padding: 4px 2px; font-size: 14px;
+    -moz-appearance: textfield;
+  }
+  .score-pair input::-webkit-outer-spin-button,
+  .score-pair input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .dash { color: var(--muted); }
+
+  td.result-cell { background: #1f2733; }
+  td.result-cell input { border-color: var(--gold); }
+
+  td.pts-5 { background: var(--green); }
+  td.pts-3 { background: var(--yellow); }
+  td.pts-0 { background: var(--red); }
+  .pts-badge { display: block; font-size: 11px; font-weight: 700; margin-top: 3px; }
+  td.pts-5 .pts-badge { color: var(--green-b); }
+  td.pts-3 .pts-badge { color: var(--yellow-b); }
+  td.pts-0 .pts-badge { color: var(--red-b); }
+
+  .add-form {
+    display: none; gap: 8px; flex-wrap: wrap; align-items: center;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; margin-bottom: 14px;
+  }
+  .add-form.open { display: flex; }
+  .add-form input {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px;
+  }
+  .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 2px 4px; }
+  .del-btn:hover { color: var(--red-b); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--panel2); border: 1px solid var(--gold); color: var(--text);
+    border-radius: 10px; padding: 12px 20px; font-size: 15px; font-weight: 600;
+    z-index: 100; box-shadow: 0 4px 24px #000000aa;
+    animation: toast-in .3s ease, toast-out .5s ease 3.5s forwards;
+    max-width: 90vw; text-align: center;
+  }
+  @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 20px); } }
+  @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 20px); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ Quiniela <span>Mundial 2026</span></h1>
+  <p class="tagline" id="tagline"></p>
+  <div class="leaderboard" id="leaderboard"></div>
+  <p class="rules">🎯 Exact score = <b style="color:var(--green-b)">5 pts</b> · 🤏 Winner (or draw) only = <b style="color:var(--yellow-b)">3 pts</b> · 💀 Miss = 0 pts. Type the official result in the gold column and the shame distributes itself automatically.</p>
+</header>
+
+<main>
+  <h2>🔮 The Prophecies</h2>
+  <p class="section-sub">Before anything else: who lifts the trophy 👑, and who's your dark horse 🐴 — the team nobody respects that crashes the semifinals anyway. Locked in writing so there's no "I always said it" later.</p>
+  <div class="pick-grid" id="pickGrid"></div>
+
+  <div class="toolbar">
+    <select id="filterSel">
+      <option value="all">All matches</option>
+      <option value="pending">Still unpunished (no result)</option>
+      <option value="scored">Already judged</option>
+    </select>
+    <button onclick="toggleAddForm()">＋ Add match (knockouts)</button>
+    <button onclick="exportData()">⬇ Export JSON</button>
+    <button onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="danger" onclick="resetAll()">☢️ Reset everything</button>
+  </div>
+
+  <div class="add-form" id="addForm">
+    <input id="addDate" placeholder="Date (e.g. Sun Jun 28)" size="16">
+    <input id="addGroup" placeholder="Stage (e.g. R32)" size="8">
+    <input id="addHome" placeholder="Home team" size="14">
+    <input id="addAway" placeholder="Away team" size="14">
+    <button onclick="addMatch()">Add</button>
+  </div>
+
+  <div id="matchList"></div>
+</main>
+
+<script>
+const STORAGE_KEY = "quiniela-wc2026";
+const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
+
+const TAGLINES = [
+  "Where friendships go to die, one scoreline at a time.",
+  "Last place buys the carnitas. House rules. 🌮",
+  "Remember: confidence is not a skill.",
+  "VAR can't save your picks, compa.",
+  "FIFA-certified* predictions (*absolutely not).",
+  "Five experts. Zero coaching licenses.",
+  "Statistically, someone here is always wrong. Emotionally, it's all of you.",
+  "The octopus retired. You're the next best thing. 🐙",
+];
+
+// team -> flagcdn.com country code
+const FLAG_CODES = {
+  "Mexico":"mx","South Africa":"za","South Korea":"kr","Czechia":"cz",
+  "Canada":"ca","Bosnia and Herzegovina":"ba","Qatar":"qa","Switzerland":"ch",
+  "Brazil":"br","Morocco":"ma","Haiti":"ht","Scotland":"gb-sct",
+  "USA":"us","Paraguay":"py","Australia":"au","Turkiye":"tr",
+  "Germany":"de","Curacao":"cw","Ivory Coast":"ci","Ecuador":"ec",
+  "Netherlands":"nl","Japan":"jp","Sweden":"se","Tunisia":"tn",
+  "Belgium":"be","Egypt":"eg","Iran":"ir","New Zealand":"nz",
+  "Spain":"es","Cape Verde":"cv","Saudi Arabia":"sa","Uruguay":"uy",
+  "France":"fr","Senegal":"sn","Iraq":"iq","Norway":"no",
+  "Argentina":"ar","Algeria":"dz","Austria":"at","Jordan":"jo",
+  "Portugal":"pt","DR Congo":"cd","Uzbekistan":"uz","Colombia":"co",
+  "England":"gb-eng","Croatia":"hr","Ghana":"gh","Panama":"pa",
+};
+const ALL_TEAMS = Object.keys(FLAG_CODES).sort();
+
+function flag(team) {
+  const code = FLAG_CODES[team];
+  return code ? `<img class="flag" src="flags/${code}.png" alt="">` : "🏳️";
+}
+function teamHtml(team) { return `${flag(team)} ${esc(team)}`; }
+
+// match #, date, group, home, away — full 2026 group stage (72 matches)
+const SCHEDULE = [
+  [1,"Thu Jun 11","A","Mexico","South Africa"],
+  [2,"Thu Jun 11","A","South Korea","Czechia"],
+  [3,"Fri Jun 12","B","Canada","Bosnia and Herzegovina"],
+  [4,"Fri Jun 12","D","USA","Paraguay"],
+  [5,"Sat Jun 13","B","Qatar","Switzerland"],
+  [6,"Sat Jun 13","C","Brazil","Morocco"],
+  [7,"Sat Jun 13","C","Haiti","Scotland"],
+  [8,"Sat Jun 13","D","Australia","Turkiye"],
+  [9,"Sun Jun 14","E","Germany","Curacao"],
+  [10,"Sun Jun 14","F","Netherlands","Japan"],
+  [11,"Sun Jun 14","E","Ivory Coast","Ecuador"],
+  [12,"Sun Jun 14","F","Sweden","Tunisia"],
+  [13,"Mon Jun 15","H","Spain","Cape Verde"],
+  [14,"Mon Jun 15","G","Belgium","Egypt"],
+  [15,"Mon Jun 15","H","Saudi Arabia","Uruguay"],
+  [16,"Mon Jun 15","G","Iran","New Zealand"],
+  [17,"Tue Jun 16","I","France","Senegal"],
+  [18,"Tue Jun 16","I","Iraq","Norway"],
+  [19,"Tue Jun 16","J","Argentina","Algeria"],
+  [20,"Tue Jun 16","J","Austria","Jordan"],
+  [21,"Wed Jun 17","K","Portugal","DR Congo"],
+  [22,"Wed Jun 17","L","England","Croatia"],
+  [23,"Wed Jun 17","L","Ghana","Panama"],
+  [24,"Wed Jun 17","K","Uzbekistan","Colombia"],
+  [25,"Thu Jun 18","A","Czechia","South Africa"],
+  [26,"Thu Jun 18","B","Switzerland","Bosnia and Herzegovina"],
+  [27,"Thu Jun 18","B","Canada","Qatar"],
+  [28,"Thu Jun 18","A","Mexico","South Korea"],
+  [29,"Fri Jun 19","C","Scotland","Morocco"],
+  [30,"Fri Jun 19","D","USA","Australia"],
+  [31,"Fri Jun 19","C","Brazil","Haiti"],
+  [32,"Fri Jun 19","D","Turkiye","Paraguay"],
+  [33,"Sat Jun 20","F","Netherlands","Sweden"],
+  [34,"Sat Jun 20","E","Germany","Ivory Coast"],
+  [35,"Sat Jun 20","E","Ecuador","Curacao"],
+  [36,"Sat Jun 20","F","Tunisia","Japan"],
+  [37,"Sun Jun 21","H","Spain","Saudi Arabia"],
+  [38,"Sun Jun 21","G","Belgium","Iran"],
+  [39,"Sun Jun 21","H","Uruguay","Cape Verde"],
+  [40,"Sun Jun 21","G","New Zealand","Egypt"],
+  [41,"Mon Jun 22","J","Argentina","Austria"],
+  [42,"Mon Jun 22","I","France","Iraq"],
+  [43,"Mon Jun 22","I","Norway","Senegal"],
+  [44,"Mon Jun 22","J","Jordan","Algeria"],
+  [45,"Tue Jun 23","K","Portugal","Uzbekistan"],
+  [46,"Tue Jun 23","L","England","Ghana"],
+  [47,"Tue Jun 23","L","Panama","Croatia"],
+  [48,"Tue Jun 23","K","Colombia","DR Congo"],
+  [49,"Wed Jun 24","B","Switzerland","Canada"],
+  [50,"Wed Jun 24","B","Bosnia and Herzegovina","Qatar"],
+  [51,"Wed Jun 24","C","Scotland","Brazil"],
+  [52,"Wed Jun 24","C","Morocco","Haiti"],
+  [53,"Wed Jun 24","A","Czechia","Mexico"],
+  [54,"Wed Jun 24","A","South Africa","South Korea"],
+  [55,"Thu Jun 25","E","Ecuador","Germany"],
+  [56,"Thu Jun 25","E","Curacao","Ivory Coast"],
+  [57,"Thu Jun 25","F","Japan","Sweden"],
+  [58,"Thu Jun 25","F","Tunisia","Netherlands"],
+  [59,"Thu Jun 25","D","Turkiye","USA"],
+  [60,"Thu Jun 25","D","Paraguay","Australia"],
+  [61,"Fri Jun 26","I","Norway","France"],
+  [62,"Fri Jun 26","I","Senegal","Iraq"],
+  [63,"Fri Jun 26","H","Cape Verde","Saudi Arabia"],
+  [64,"Fri Jun 26","H","Uruguay","Spain"],
+  [65,"Fri Jun 26","G","Egypt","Iran"],
+  [66,"Fri Jun 26","G","New Zealand","Belgium"],
+  [67,"Sat Jun 27","L","Panama","England"],
+  [68,"Sat Jun 27","L","Croatia","Ghana"],
+  [69,"Sat Jun 27","K","Colombia","Portugal"],
+  [70,"Sat Jun 27","K","DR Congo","Uzbekistan"],
+  [71,"Sat Jun 27","J","Algeria","Austria"],
+  [72,"Sat Jun 27","J","Jordan","Argentina"],
+];
+
+const RANK_TITLES = [
+  "👑 El Míster — bow before him",
+  "🥈 Almost famous",
+  "🥉 Aggressively mid-table",
+  "😬 The panic zone",
+  "🥄 Wooden spoon — carnitas are on you",
+];
+
+let state = load();
+
+function defaultState() {
+  return {
+    players: [...NAMES],
+    extraMatches: [],          // matches added by hand (knockouts)
+    picks: {},                 // picks[matchId][playerIdx] = [home, away]
+    results: {},               // results[matchId] = [home, away]
+    champs: {},                // champs[playerIdx] = team
+    horses: {},                // horses[playerIdx] = team
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const s = Object.assign(defaultState(), JSON.parse(raw));
+      // migrate pre-named saves ("Player 1"...) to the real squad
+      if (s.players.every(p => /^Player \d$/.test(p))) s.players = [...NAMES];
+      return s;
+    }
+  } catch (e) { /* corrupted storage falls through to a fresh state */ }
+  return defaultState();
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function allMatches() {
+  const base = SCHEDULE.map(([num, date, group, home, away]) => ({
+    id: "m" + num, num, date, group: "Grp " + group, home, away,
+  }));
+  return base.concat(state.extraMatches);
+}
+
+// 5 = exact score, 3 = correct outcome only, 0 = miss
+function scorePick(pick, result) {
+  if (!pick || !result) return null;
+  const [ph, pa] = pick, [rh, ra] = result;
+  if ([ph, pa, rh, ra].some(v => v === null || v === "" || isNaN(v))) return null;
+  if (+ph === +rh && +pa === +ra) return 5;
+  if (Math.sign(ph - pa) === Math.sign(rh - ra)) return 3;
+  return 0;
+}
+
+function totals() {
+  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0 }));
+  for (const m of allMatches()) {
+    const result = state.results[m.id];
+    if (!result) continue;
+    state.players.forEach((_, i) => {
+      const s = scorePick((state.picks[m.id] || {})[i], result);
+      if (s === 5) { t[i].pts += 5; t[i].exact++; }
+      else if (s === 3) { t[i].pts += 3; t[i].winner++; }
+    });
+  }
+  return t;
+}
+
+function renderLeaderboard() {
+  const t = totals();
+  const anyPoints = t.some(x => x.pts > 0);
+  const ranked = state.players
+    .map((name, i) => ({ name, ...t[i] }))
+    .sort((a, b) => b.pts - a.pts);
+  document.getElementById("leaderboard").innerHTML = ranked.map((p, i) => `
+    <div class="lb-card ${anyPoints && i === 0 ? "first" : ""} ${anyPoints && i === ranked.length - 1 ? "last" : ""}">
+      <div class="lb-top">
+        <span class="lb-name">${esc(p.name)}</span>
+        <span class="lb-pts">${p.pts}</span>
+      </div>
+      <span class="lb-title">${anyPoints ? RANK_TITLES[i] : "⏳ Undefeated (so far)"}</span>
+      <span class="lb-detail">🎯 ${p.exact} exact · 🤏 ${p.winner} winner-only</span>
+    </div>`).join("");
+}
+
+function teamOptions(selected) {
+  return `<option value="">— pick a team —</option>` + ALL_TEAMS.map(t =>
+    `<option value="${esc(t)}" ${t === selected ? "selected" : ""}>${esc(t)}</option>`).join("");
+}
+
+function renderPicks() {
+  document.getElementById("pickGrid").innerHTML = state.players.map((name, i) => {
+    const champ = state.champs[i] || "";
+    const horse = state.horses[i] || "";
+    const clash = champ && champ === horse;
+    return `
+    <div class="pick-card">
+      <input class="pname" value="${esc(name)}" onchange="renamePlayer(${i}, this.value)">
+      <label>👑 World champion
+        <select onchange="setChamp(${i}, this.value)">${teamOptions(champ)}</select>
+      </label>
+      <div class="pick-flag-line">${champ ? `${flag(champ)} <span class="who">lifts it, says ${esc(name)}</span>` : `<span class="who">no champion picked 😴</span>`}</div>
+      <label>🐴 Dark horse
+        <select onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
+      </label>
+      <div class="pick-flag-line">${horse ? `${flag(horse)} <span class="who">sneaks into the semis</span>` : `<span class="who">no dark horse yet 🐴💤</span>`}</div>
+      ${clash ? `<div class="pick-warn">🤨 Your dark horse can't also be your champion. Pick a real underdog.</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function renderMatches() {
+  const filter = document.getElementById("filterSel").value;
+  const byDate = {};
+  for (const m of allMatches()) {
+    const hasResult = !!state.results[m.id];
+    if (filter === "pending" && hasResult) continue;
+    if (filter === "scored" && !hasResult) continue;
+    (byDate[m.date] = byDate[m.date] || []).push(m);
+  }
+
+  let html = "";
+  for (const [date, matches] of Object.entries(byDate)) {
+    html += `<div class="date-section"><div class="date-title">${esc(date)}</div>
+      <div style="overflow-x:auto"><table>
+      <tr><th>Match</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ Reality</th></tr>`;
+    for (const m of matches) {
+      const result = state.results[m.id];
+      html += `<tr><td class="match-cell">
+        <span class="m-num">#${m.num}</span> <span class="m-group">${esc(m.group)}</span><br>
+        <span class="m-teams">${teamHtml(m.home)} <span class="dash">vs</span> ${teamHtml(m.away)}</span>
+        ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Remove match">✕</button>` : ""}
+      </td>`;
+      state.players.forEach((_, i) => {
+        const pick = (state.picks[m.id] || {})[i] || ["", ""];
+        const s = scorePick(pick, result);
+        const cls = s === 5 ? "pts-5" : s === 3 ? "pts-3" : s === 0 ? "pts-0" : "";
+        html += `<td class="${cls}">
+          <span class="score-pair">
+            <input type="number" min="0" max="99" value="${pick[0]}" onchange="setPick('${m.id}',${i},0,this.value)">
+            <span class="dash">–</span>
+            <input type="number" min="0" max="99" value="${pick[1]}" onchange="setPick('${m.id}',${i},1,this.value)">
+          </span>
+          ${s !== null ? `<span class="pts-badge">${s === 5 ? "🎯 +5 GOLAZO" : s === 3 ? "🤏 +3 close enough" : "💀 0"}</span>` : ""}
+        </td>`;
+      });
+      const r = result || ["", ""];
+      html += `<td class="result-cell">
+        <span class="score-pair">
+          <input type="number" min="0" max="99" value="${r[0]}" onchange="setResult('${m.id}',0,this.value)">
+          <span class="dash">–</span>
+          <input type="number" min="0" max="99" value="${r[1]}" onchange="setResult('${m.id}',1,this.value)">
+        </span>
+      </td></tr>`;
+    }
+    html += `</table></div></div>`;
+  }
+  document.getElementById("matchList").innerHTML = html ||
+    `<p style="color:var(--muted)">Nothing here. Either you've judged every match or none — both say something about you. 🤷</p>`;
+}
+
+function renderAll() {
+  renderLeaderboard();
+  renderPicks();
+  renderMatches();
+}
+
+function renamePlayer(i, name) {
+  state.players[i] = name.trim() || NAMES[i];
+  save(); renderAll();
+}
+
+function setChamp(i, team) {
+  state.champs[i] = team;
+  save(); renderPicks();
+}
+
+function setHorse(i, team) {
+  state.horses[i] = team;
+  save(); renderPicks();
+}
+
+function setPick(matchId, playerIdx, side, value) {
+  const picks = state.picks[matchId] = state.picks[matchId] || {};
+  const pick = picks[playerIdx] = picks[playerIdx] || ["", ""];
+  pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
+  save(); renderLeaderboard(); renderMatches();
+}
+
+function setResult(matchId, side, value) {
+  const r = state.results[matchId] = state.results[matchId] || ["", ""];
+  r[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
+  if (r[0] === "" && r[1] === "") delete state.results[matchId];
+  save(); renderLeaderboard(); renderMatches();
+  announceResult(matchId);
+}
+
+function announceResult(matchId) {
+  const result = state.results[matchId];
+  if (!result || result[0] === "" || result[1] === "") return;
+  const m = allMatches().find(x => x.id === matchId);
+  const scores = state.players.map((name, i) => ({ name, s: scorePick((state.picks[matchId] || {})[i], result) }));
+  const exact = scores.filter(x => x.s === 5).map(x => x.name);
+  const played = scores.filter(x => x.s !== null);
+  if (exact.length) {
+    toast(`🎯 ¡GOLAZO! ${exact.join(" & ")} nailed ${m.home} ${result[0]}–${result[1]} ${m.away} on the dot. Respect.`);
+  } else if (played.length && played.every(x => x.s === 0)) {
+    toast(`🤡 ${m.home} vs ${m.away}: not a single one of you saw that coming. Incredible scenes.`);
+  }
+}
+
+function toast(msg) {
+  document.querySelectorAll(".toast").forEach(t => t.remove());
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4200);
+}
+
+function toggleAddForm() {
+  document.getElementById("addForm").classList.toggle("open");
+}
+
+function addMatch() {
+  const date = document.getElementById("addDate").value.trim();
+  const group = document.getElementById("addGroup").value.trim() || "KO";
+  const home = document.getElementById("addHome").value.trim();
+  const away = document.getElementById("addAway").value.trim();
+  if (!date || !home || !away) { alert("Date, home team and away team are required. Even FIFA has standards. Barely."); return; }
+  const num = 72 + state.extraMatches.length + 1;
+  state.extraMatches.push({ id: "x" + Date.now(), num, date, group, home, away, extra: true });
+  ["addDate", "addGroup", "addHome", "addAway"].forEach(id => document.getElementById(id).value = "");
+  save(); renderMatches();
+}
+
+function removeMatch(id) {
+  if (!confirm("Remove this match and its picks? No VAR review on this one.")) return;
+  state.extraMatches = state.extraMatches.filter(m => m.id !== id);
+  delete state.picks[id];
+  delete state.results[id];
+  save(); renderAll();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "quiniela-wc2026-backup.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      state = Object.assign(defaultState(), JSON.parse(reader.result));
+      save(); renderAll();
+    } catch (e) { alert("That file is not a quiniela backup. Nice try, Diego."); }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function resetAll() {
+  if (!confirm("Delete ALL picks, results, prophecies and points? This is the nuclear option. Export a backup first if anyone's dignity is worth saving.")) return;
+  state = defaultState();
+  save(); renderAll();
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+document.getElementById("tagline").textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+document.getElementById("filterSel").addEventListener("change", renderMatches);
+renderAll();
+</script>
+</body>
+</html>
