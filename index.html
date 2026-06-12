@@ -25,10 +25,13 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(1100px 520px at 85% -10%, #1b2a4a66, transparent),
+      radial-gradient(900px 500px at -10% 35%, #14321e55, transparent),
+      var(--bg);
     color: var(--text);
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 14px;
+    font-size: 15px;
   }
   header {
     position: sticky;
@@ -38,27 +41,47 @@
     border-bottom: 1px solid var(--border);
     padding: 12px 20px;
   }
-  h1 { margin: 0 0 2px; font-size: 22px; }
-  h1 span { color: var(--gold); }
-  .tagline { color: var(--muted); font-size: 12px; font-style: italic; margin: 0 0 10px; }
+  h1 { margin: 0 0 2px; font-size: 32px; font-weight: 900; letter-spacing: -.5px; }
+  h1 .ball { display: inline-block; }
+  h1:hover .ball { animation: ball-roll .9s ease; }
+  @keyframes ball-roll { to { transform: rotate(360deg); } }
+  h1 .gold {
+    background: linear-gradient(100deg, var(--gold), #ffd866 45%, #ff9f43 80%, var(--gold));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); font-size: 13px; font-style: italic; margin: 0 0 12px; transition: opacity .4s; }
   .leaderboard { display: flex; gap: 10px; flex-wrap: wrap; }
   .lb-card {
     background: var(--panel2);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 14px;
+    border-radius: 10px;
+    padding: 10px 16px;
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    gap: 2px;
+    min-width: 195px;
+    transition: transform .15s ease, box-shadow .15s ease;
   }
-  .lb-card.first { border-color: var(--gold); box-shadow: 0 0 12px #e3b34133; }
-  .lb-card.last { border-color: var(--red-b); }
+  .lb-card:hover { transform: translateY(-2px); }
+  .lb-card.first { border-color: var(--gold); animation: gold-pulse 2.2s ease-in-out infinite; }
+  @keyframes gold-pulse {
+    0%, 100% { box-shadow: 0 0 10px #e3b34133; }
+    50% { box-shadow: 0 0 22px #e3b34166; }
+  }
+  .lb-card.last { border-color: var(--red-b); box-shadow: 0 0 10px #f8514922; }
   .lb-top { display: flex; align-items: baseline; gap: 8px; }
-  .lb-name { font-weight: 700; }
-  .lb-pts { color: var(--accent); font-weight: 800; font-size: 18px; margin-left: auto; }
+  .lb-medal { font-size: 20px; }
+  .lb-name { font-weight: 800; font-size: 16px; }
+  .lb-pts { color: var(--accent); font-weight: 900; font-size: 26px; margin-left: auto; }
   .lb-title { font-size: 11px; color: var(--gold); }
   .lb-card.last .lb-title { color: var(--red-b); }
   .lb-detail { color: var(--muted); font-size: 11px; }
+  .stats-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .stat-chip {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--muted);
+  }
+  .stat-chip b { color: var(--text); }
   .rules { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
 
   main { padding: 16px 20px 60px; max-width: 1500px; margin: 0 auto; }
@@ -98,11 +121,12 @@
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 6px 12px;
+    padding: 7px 14px;
     cursor: pointer;
     font-size: 13px;
+    transition: transform .12s ease, border-color .12s ease;
   }
-  button:hover { border-color: var(--accent); }
+  button:hover { border-color: var(--accent); transform: translateY(-1px); }
   button.danger:hover { border-color: var(--red-b); color: var(--red-b); }
   select#filterSel {
     background: var(--panel2); color: var(--text);
@@ -111,8 +135,8 @@
 
   .date-section { margin-top: 22px; }
   .date-title {
-    font-size: 15px; font-weight: 700; color: var(--gold);
-    border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px;
+    font-size: 18px; font-weight: 800; color: var(--gold);
+    border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 10px;
   }
 
   table { border-collapse: collapse; width: 100%; }
@@ -125,10 +149,10 @@
 
   .score-pair { display: inline-flex; align-items: center; gap: 3px; }
   .score-pair input {
-    width: 34px; text-align: center;
+    width: 42px; text-align: center;
     background: var(--panel2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 5px;
-    padding: 4px 2px; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 2px; font-size: 16px; font-weight: 700;
     -moz-appearance: textfield;
   }
   .score-pair input::-webkit-outer-spin-button,
@@ -141,7 +165,7 @@
   td.pts-5 { background: var(--green); }
   td.pts-3 { background: var(--yellow); }
   td.pts-0 { background: var(--red); }
-  .pts-badge { display: block; font-size: 11px; font-weight: 700; margin-top: 3px; }
+  .pts-badge { display: block; font-size: 12px; font-weight: 800; margin-top: 3px; }
   td.pts-5 .pts-badge { color: var(--green-b); }
   td.pts-3 .pts-badge { color: var(--yellow-b); }
   td.pts-0 .pts-badge { color: var(--red-b); }
@@ -160,15 +184,32 @@
   .del-btn:hover { color: var(--red-b); }
 
   .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: var(--panel2); border: 1px solid var(--gold); color: var(--text);
-    border-radius: 10px; padding: 12px 20px; font-size: 15px; font-weight: 600;
-    z-index: 100; box-shadow: 0 4px 24px #000000aa;
-    animation: toast-in .3s ease, toast-out .5s ease 3.5s forwards;
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--panel2); border: 2px solid var(--gold); color: var(--text);
+    border-radius: 12px; padding: 16px 26px; font-size: 17px; font-weight: 700;
+    z-index: 100; box-shadow: 0 4px 32px #000000cc;
+    animation: toast-in .3s ease, toast-out .5s ease 4.5s forwards;
     max-width: 90vw; text-align: center;
   }
+  .toast.clown { border-color: var(--red-b); animation: toast-in .3s ease, clown-shake .5s ease .3s, toast-out .5s ease 4.5s forwards; }
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 20px); } }
   @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 20px); } }
+  @keyframes clown-shake {
+    0%, 100% { transform: translate(-50%, 0); }
+    20%, 60% { transform: translate(calc(-50% - 8px), 0); }
+    40%, 80% { transform: translate(calc(-50% + 8px), 0); }
+  }
+
+  .confetti {
+    position: fixed; top: -24px; width: 10px; height: 16px; z-index: 99;
+    pointer-events: none; border-radius: 2px; opacity: 0;
+    animation: confetti-fall linear forwards;
+  }
+  .confetti.emoji { background: none !important; font-size: 24px; width: auto; height: auto; }
+  @keyframes confetti-fall {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+    100% { opacity: .9; transform: translate(var(--drift), 108vh) rotate(var(--spin)); }
+  }
 
   .sync-chip {
     position: absolute; top: 14px; right: 20px;
@@ -182,9 +223,10 @@
 
 <header>
   <span class="sync-chip" id="syncStatus">⏳ connecting…</span>
-  <h1>⚽ Quiniela <span>Mundial 2026</span></h1>
+  <h1><span class="ball">⚽</span> Quiniela <span class="gold">Mundial 2026</span></h1>
   <p class="tagline" id="tagline"></p>
   <div class="leaderboard" id="leaderboard"></div>
+  <div class="stats-strip" id="statsStrip"></div>
   <p class="rules">🎯 Exact score = <b style="color:var(--green-b)">5 pts</b> · 🤏 Winner (or draw) only = <b style="color:var(--yellow-b)">3 pts</b> · 💀 Miss = 0 pts. Type the official result in the gold column and the shame distributes itself automatically.</p>
 </header>
 
@@ -230,6 +272,14 @@ const TAGLINES = [
   "Five experts. Zero coaching licenses.",
   "Statistically, someone here is always wrong. Emotionally, it's all of you.",
   "The octopus retired. You're the next best thing. 🐙",
+  "Group stage loyalty, knockout stage betrayal.",
+  "Your gut feeling has a 0–12 record.",
+  "Penales? We don't talk about penales.",
+  "This is a safe space. The leaderboard is not.",
+  "El que se enoja pierde. El que pierde paga. 🌮",
+  "Carnitas futures are trading high. 📈",
+  "May your 2–1s land and your amistades survive.",
+  "Somewhere, a coin flip is outperforming you.",
 ];
 
 // team -> flagcdn.com country code
@@ -401,21 +451,52 @@ function totals() {
   return t;
 }
 
+const MEDALS = ["🥇", "🥈", "🥉", "😬", "🥄"];
+
+// last five judged matches as emoji form, like a real league table but meaner
+function formLine(playerIdx) {
+  const judged = allMatches().filter(m => state.results[m.id]).sort((a, b) => a.num - b.num);
+  return judged.slice(-5).map(m => {
+    const s = scorePick((state.picks[m.id] || {})[playerIdx], state.results[m.id]);
+    return s === 5 ? "🎯" : s === 3 ? "🤏" : s === 0 ? "💀" : "▫️";
+  }).join("") || "—";
+}
+
 function renderLeaderboard() {
   const t = totals();
   const anyPoints = t.some(x => x.pts > 0);
   const ranked = state.players
-    .map((name, i) => ({ name, ...t[i] }))
+    .map((name, i) => ({ name, idx: i, ...t[i] }))
     .sort((a, b) => b.pts - a.pts);
   document.getElementById("leaderboard").innerHTML = ranked.map((p, i) => `
     <div class="lb-card ${anyPoints && i === 0 ? "first" : ""} ${anyPoints && i === ranked.length - 1 ? "last" : ""}">
       <div class="lb-top">
+        <span class="lb-medal">${anyPoints ? MEDALS[i] : "⏳"}</span>
         <span class="lb-name">${esc(p.name)}</span>
         <span class="lb-pts">${p.pts}</span>
       </div>
       <span class="lb-title">${anyPoints ? RANK_TITLES[i] : "⏳ Undefeated (so far)"}</span>
       <span class="lb-detail">🎯 ${p.exact} exact · 🤏 ${p.winner} winner-only</span>
+      <span class="lb-detail">form ${formLine(p.idx)}${anyPoints && i > 0 ? ` · −${ranked[0].pts - p.pts} off the throne` : ""}</span>
     </div>`).join("");
+  renderStats(ranked, anyPoints);
+}
+
+function renderStats(ranked, anyPoints) {
+  const judged = allMatches().filter(m => state.results[m.id]);
+  let clownCount = 0;
+  for (const m of judged) {
+    const played = state.players
+      .map((_, i) => scorePick((state.picks[m.id] || {})[i], state.results[m.id]))
+      .filter(s => s !== null);
+    if (played.length && played.every(s => s === 0)) clownCount++;
+  }
+  const sniper = ranked.slice().sort((a, b) => b.exact - a.exact)[0];
+  const chips = [`⚖️ <b>${judged.length}</b> matches judged`];
+  if (anyPoints && sniper.exact > 0) chips.push(`🎯 Sniper-in-chief: <b>${esc(sniper.name)}</b> (${sniper.exact})`);
+  if (clownCount) chips.push(`🤡 Full-table whiffs: <b>${clownCount}</b> — incredible scenes`);
+  chips.push(`🌮 Carnitas fund: <b>${anyPoints ? esc(ranked[ranked.length - 1].name) : "TBD"}</b> currently paying`);
+  document.getElementById("statsStrip").innerHTML = chips.map(c => `<span class="stat-chip">${c}</span>`).join("");
 }
 
 function teamOptions(selected) {
@@ -538,19 +619,39 @@ function announceResult(matchId) {
   const exact = scores.filter(x => x.s === 5).map(x => x.name);
   const played = scores.filter(x => x.s !== null);
   if (exact.length) {
+    confettiBurst();
     toast(`🎯 ¡GOLAZO! ${exact.join(" & ")} nailed ${m.home} ${result[0]}–${result[1]} ${m.away} on the dot. Respect.`);
   } else if (played.length && played.every(x => x.s === 0)) {
-    toast(`🤡 ${m.home} vs ${m.away}: not a single one of you saw that coming. Incredible scenes.`);
+    confettiBurst(["🤡", "💀", "📉"]);
+    toast(`🤡 ${m.home} vs ${m.away}: not a single one of you saw that coming. Incredible scenes.`, "clown");
   }
 }
 
-function toast(msg) {
+function toast(msg, cls) {
   document.querySelectorAll(".toast").forEach(t => t.remove());
   const t = document.createElement("div");
-  t.className = "toast";
+  t.className = "toast" + (cls ? " " + cls : "");
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 4200);
+  setTimeout(() => t.remove(), 5200);
+}
+
+function confettiBurst(emojis) {
+  const colors = ["#e3b341", "#58a6ff", "#3fb950", "#f85149", "#bc8cff", "#ffffff"];
+  const count = emojis ? 36 : 90;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "confetti" + (emojis ? " emoji" : "");
+    if (emojis) p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    else p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = Math.random() * 100 + "vw";
+    p.style.animationDelay = (Math.random() * 0.7).toFixed(2) + "s";
+    p.style.animationDuration = (2.2 + Math.random() * 1.6).toFixed(2) + "s";
+    p.style.setProperty("--drift", Math.round(Math.random() * 160 - 80) + "px");
+    p.style.setProperty("--spin", Math.round(Math.random() * 720 - 360) + "deg");
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 4800);
+  }
 }
 
 function toggleAddForm() {
@@ -698,7 +799,18 @@ async function pullCloud(initial) {
   }
 }
 
-document.getElementById("tagline").textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+let taglineIdx = Math.floor(Math.random() * TAGLINES.length);
+function rotateTagline() {
+  const el = document.getElementById("tagline");
+  el.style.opacity = 0;
+  setTimeout(() => {
+    el.textContent = TAGLINES[taglineIdx % TAGLINES.length];
+    el.style.opacity = 1;
+    taglineIdx++;
+  }, 400);
+}
+rotateTagline();
+setInterval(rotateTagline, 15000);
 document.getElementById("filterSel").addEventListener("change", renderMatches);
 renderAll();
 pullCloud(true);
