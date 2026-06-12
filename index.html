@@ -237,6 +237,41 @@
     background: var(--panel2); border: 1px solid var(--border);
     border-radius: 999px; padding: 4px 11px;
   }
+
+  /* teléfono: el header deja de ser sticky (se comía toda la pantalla),
+     la tabla de líderes y los chips se deslizan en una sola fila */
+  @media (max-width: 760px) {
+    body { font-size: 15px; }
+    header { position: static; padding: 10px 12px; }
+    h1 { font-size: 26px; }
+    .tagline { font-size: 13px; margin: 0 0 8px; }
+    .sync-chip { position: static; display: inline-block; margin-bottom: 6px; font-size: 11px; padding: 3px 9px; }
+    .leaderboard { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    .lb-card { min-width: 170px; padding: 8px 12px; flex-shrink: 0; }
+    .lb-card:hover { transform: none; }
+    .lb-medal { font-size: 18px; }
+    .lb-name { font-size: 15px; }
+    .lb-pts { font-size: 24px; }
+    .lb-title { font-size: 11px; }
+    .lb-detail { font-size: 11px; }
+    .stats-strip { flex-wrap: nowrap; overflow-x: auto; margin-top: 8px; -webkit-overflow-scrolling: touch; }
+    .stat-chip { font-size: 11px; padding: 4px 10px; white-space: nowrap; flex-shrink: 0; }
+    .rules { font-size: 11px; margin-top: 8px; }
+    main { padding: 12px 12px 60px; }
+    h2 { font-size: 19px; margin-top: 22px; }
+    .section-sub { font-size: 13px; }
+    .pick-card { width: 100%; }
+    button, select#filterSel { font-size: 14px; padding: 7px 12px; }
+    .date-title { font-size: 18px; }
+    th { font-size: 12px; }
+    th, td { padding: 5px 5px; }
+    td.match-cell { min-width: 185px; }
+    .m-teams { font-size: 14px; }
+    td img.flag { width: 17px; height: 12px; }
+    .score-pair input { width: 36px; font-size: 15px; padding: 5px 1px; }
+    .pts-badge { font-size: 11px; }
+    .toast { font-size: 15px; padding: 12px 18px; bottom: 18px; }
+  }
 </style>
 </head>
 <body>
