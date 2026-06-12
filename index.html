@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,9 +39,9 @@
     z-index: 10;
     background: var(--panel);
     border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
+    padding: 14px 22px;
   }
-  h1 { margin: 0 0 2px; font-size: 32px; font-weight: 900; letter-spacing: -.5px; }
+  h1 { margin: 0 0 2px; font-size: 38px; font-weight: 900; letter-spacing: -.5px; }
   h1 .ball { display: inline-block; }
   h1:hover .ball { animation: ball-roll .9s ease; }
   @keyframes ball-roll { to { transform: rotate(360deg); } }
@@ -49,110 +49,113 @@
     background: linear-gradient(100deg, var(--gold), #ffd866 45%, #ff9f43 80%, var(--gold));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .tagline { color: var(--muted); font-size: 13px; font-style: italic; margin: 0 0 12px; transition: opacity .4s; }
+  .tagline { color: var(--muted); font-size: 14px; font-style: italic; margin: 0 0 12px; transition: opacity .4s; }
   .leaderboard { display: flex; gap: 10px; flex-wrap: wrap; }
   .lb-card {
     background: var(--panel2);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 16px;
+    border-radius: 12px;
+    padding: 12px 18px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 195px;
+    min-width: 215px;
     transition: transform .15s ease, box-shadow .15s ease;
   }
   .lb-card:hover { transform: translateY(-2px); }
   .lb-card.first { border-color: var(--gold); animation: gold-pulse 2.2s ease-in-out infinite; }
   @keyframes gold-pulse {
     0%, 100% { box-shadow: 0 0 10px #e3b34133; }
-    50% { box-shadow: 0 0 22px #e3b34166; }
+    50% { box-shadow: 0 0 24px #e3b34177; }
   }
   .lb-card.last { border-color: var(--red-b); box-shadow: 0 0 10px #f8514922; }
   .lb-top { display: flex; align-items: baseline; gap: 8px; }
-  .lb-medal { font-size: 20px; }
-  .lb-name { font-weight: 800; font-size: 16px; }
-  .lb-pts { color: var(--accent); font-weight: 900; font-size: 26px; margin-left: auto; }
-  .lb-title { font-size: 11px; color: var(--gold); }
+  .lb-medal { font-size: 24px; }
+  .lb-name { font-weight: 800; font-size: 18px; }
+  .lb-pts { color: var(--accent); font-weight: 900; font-size: 32px; margin-left: auto; }
+  .lb-title { font-size: 12px; color: var(--gold); }
   .lb-card.last .lb-title { color: var(--red-b); }
-  .lb-detail { color: var(--muted); font-size: 11px; }
-  .stats-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .lb-detail { color: var(--muted); font-size: 12px; }
+  .stats-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .stat-chip {
     background: var(--panel2); border: 1px solid var(--border);
-    border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--muted);
+    border-radius: 999px; padding: 5px 14px; font-size: 13px; color: var(--muted);
   }
   .stat-chip b { color: var(--text); }
-  .rules { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+  .rules { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
 
-  main { padding: 16px 20px 60px; max-width: 1500px; margin: 0 auto; }
+  main { padding: 18px 22px 70px; max-width: 1600px; margin: 0 auto; }
 
-  h2 { font-size: 16px; color: var(--gold); margin: 24px 0 4px; }
-  .section-sub { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  h2 { font-size: 21px; color: var(--gold); margin: 28px 0 4px; font-weight: 800; }
+  .section-sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 
   .pick-grid { display: flex; gap: 10px; flex-wrap: wrap; }
   .pick-card {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    width: 215px;
+    border-radius: 12px;
+    padding: 14px 16px;
+    width: 230px;
     display: flex; flex-direction: column; gap: 8px;
+    transition: transform .15s ease;
   }
+  .pick-card:hover { transform: translateY(-2px); }
   .pick-card input.pname {
     background: var(--panel2); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
-    padding: 6px 10px; font-size: 15px; font-weight: 700; width: 100%;
+    padding: 7px 10px; font-size: 16px; font-weight: 800; width: 100%;
   }
-  .pick-card label { font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
+  .pick-card label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
   .pick-card select {
     background: var(--panel2); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
-    padding: 6px 8px; font-size: 13px; width: 100%;
+    padding: 7px 8px; font-size: 14px; width: 100%;
   }
-  .pick-flag-line { font-size: 12px; display: flex; align-items: center; gap: 6px; min-height: 20px; }
+  .pick-flag-line { font-size: 13px; display: flex; align-items: center; gap: 6px; min-height: 20px; }
   .pick-flag-line .who { color: var(--muted); }
-  .pick-warn { color: var(--red-b); font-size: 11px; }
-  img.flag { width: 22px; height: 16px; border-radius: 2px; vertical-align: -3px; box-shadow: 0 0 0 1px #00000055; }
-  td img.flag { width: 18px; height: 13px; }
+  .pick-warn { color: var(--red-b); font-size: 12px; }
+  img.flag { width: 24px; height: 17px; border-radius: 2px; vertical-align: -3px; box-shadow: 0 0 0 1px #00000055; }
+  td img.flag { width: 20px; height: 14px; }
 
-  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 14px; align-items: center; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 16px; align-items: center; }
   button {
     background: var(--panel2);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
     transition: transform .12s ease, border-color .12s ease;
   }
   button:hover { border-color: var(--accent); transform: translateY(-1px); }
   button.danger:hover { border-color: var(--red-b); color: var(--red-b); }
   select#filterSel {
     background: var(--panel2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 14px;
   }
 
-  .date-section { margin-top: 22px; }
+  .date-section { margin-top: 26px; }
   .date-title {
-    font-size: 18px; font-weight: 800; color: var(--gold);
-    border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 10px;
+    font-size: 21px; font-weight: 800; color: var(--gold);
+    border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 10px;
   }
 
   table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: center; vertical-align: middle; }
-  th { background: var(--panel); font-size: 12px; }
-  td.match-cell { text-align: left; background: var(--panel); min-width: 250px; }
+  th, td { border: 1px solid var(--border); padding: 8px 9px; text-align: center; vertical-align: middle; }
+  th { background: var(--panel); font-size: 13px; }
+  td.match-cell { text-align: left; background: var(--panel); min-width: 260px; }
   .m-num { color: var(--muted); font-size: 11px; }
-  .m-teams { font-weight: 600; }
+  .m-teams { font-weight: 600; font-size: 15px; }
   .m-group { color: var(--accent); font-size: 11px; }
+  .winner { color: var(--gold); font-weight: 800; }
 
   .score-pair { display: inline-flex; align-items: center; gap: 3px; }
   .score-pair input {
-    width: 42px; text-align: center;
+    width: 48px; text-align: center;
     background: var(--panel2); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
-    padding: 6px 2px; font-size: 16px; font-weight: 700;
+    padding: 7px 2px; font-size: 18px; font-weight: 700;
     -moz-appearance: textfield;
   }
   .score-pair input::-webkit-outer-spin-button,
@@ -165,7 +168,7 @@
   td.pts-5 { background: var(--green); }
   td.pts-3 { background: var(--yellow); }
   td.pts-0 { background: var(--red); }
-  .pts-badge { display: block; font-size: 12px; font-weight: 800; margin-top: 3px; }
+  .pts-badge { display: block; font-size: 13px; font-weight: 800; margin-top: 4px; }
   td.pts-5 .pts-badge { color: var(--green-b); }
   td.pts-3 .pts-badge { color: var(--yellow-b); }
   td.pts-0 .pts-badge { color: var(--red-b); }
@@ -178,7 +181,7 @@
   .add-form.open { display: flex; }
   .add-form input {
     background: var(--panel2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 14px;
   }
   .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 2px 4px; }
   .del-btn:hover { color: var(--red-b); }
@@ -186,7 +189,7 @@
   .toast {
     position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
     background: var(--panel2); border: 2px solid var(--gold); color: var(--text);
-    border-radius: 12px; padding: 16px 26px; font-size: 17px; font-weight: 700;
+    border-radius: 12px; padding: 16px 26px; font-size: 18px; font-weight: 700;
     z-index: 100; box-shadow: 0 4px 32px #000000cc;
     animation: toast-in .3s ease, toast-out .5s ease 4.5s forwards;
     max-width: 90vw; text-align: center;
@@ -205,55 +208,72 @@
     pointer-events: none; border-radius: 2px; opacity: 0;
     animation: confetti-fall linear forwards;
   }
-  .confetti.emoji { background: none !important; font-size: 24px; width: auto; height: auto; }
+  .confetti.emoji { background: none !important; font-size: 26px; width: auto; height: auto; }
   @keyframes confetti-fall {
     0% { opacity: 1; transform: translate(0, 0) rotate(0); }
     100% { opacity: .9; transform: translate(var(--drift), 108vh) rotate(var(--spin)); }
   }
 
+  .gol-overlay {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    z-index: 98; pointer-events: none;
+    font-size: clamp(64px, 15vw, 180px); font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(100deg, var(--gold), #fff3c4 45%, #ff9f43);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 28px #e3b34188);
+    animation: gol-zoom 1.9s ease forwards;
+  }
+  @keyframes gol-zoom {
+    0% { opacity: 0; transform: scale(.3) rotate(-6deg); }
+    20% { opacity: 1; transform: scale(1.12) rotate(2deg); }
+    45% { transform: scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.18); }
+  }
+
   .sync-chip {
-    position: absolute; top: 14px; right: 20px;
+    position: absolute; top: 16px; right: 22px;
     font-size: 12px; color: var(--muted);
     background: var(--panel2); border: 1px solid var(--border);
-    border-radius: 999px; padding: 3px 10px;
+    border-radius: 999px; padding: 4px 11px;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <span class="sync-chip" id="syncStatus">⏳ connecting…</span>
+  <span class="sync-chip" id="syncStatus">⏳ conectando…</span>
   <h1><span class="ball">⚽</span> Quiniela <span class="gold">Mundial 2026</span></h1>
   <p class="tagline" id="tagline"></p>
   <div class="leaderboard" id="leaderboard"></div>
   <div class="stats-strip" id="statsStrip"></div>
-  <p class="rules">🎯 Exact score = <b style="color:var(--green-b)">5 pts</b> · 🤏 Winner (or draw) only = <b style="color:var(--yellow-b)">3 pts</b> · 💀 Miss = 0 pts. Type the official result in the gold column and the shame distributes itself automatically.</p>
+  <p class="rules">🎯 Marcador exacto = <b style="color:var(--green-b)">5 pts</b> · 🤏 Solo ganador (o empate) = <b style="color:var(--yellow-b)">3 pts</b> · 💀 Fallo = 0 pts. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.</p>
 </header>
 
 <main>
-  <h2>🔮 The Prophecies</h2>
-  <p class="section-sub">Before anything else: who lifts the trophy 👑, and who's your dark horse 🐴 — the team nobody respects that crashes the semifinals anyway. Locked in writing so there's no "I always said it" later.</p>
+  <h2>🔮 Las Profecías</h2>
+  <p class="section-sub">Antes que nada: ¿quién levanta la copa 👑 y cuál es tu caballo negro 🐴 — el equipo que nadie respeta y aun así se mete hasta semifinales? Queda por escrito para que luego no haya "yo siempre lo dije".</p>
   <div class="pick-grid" id="pickGrid"></div>
 
   <div class="toolbar">
     <select id="filterSel">
-      <option value="all">All matches</option>
-      <option value="pending">Still unpunished (no result)</option>
-      <option value="scored">Already judged</option>
+      <option value="all">Todos los partidos</option>
+      <option value="pending">Sin castigo (sin resultado)</option>
+      <option value="scored">Ya juzgados</option>
     </select>
-    <button onclick="toggleAddForm()">＋ Add match (knockouts)</button>
-    <button onclick="exportData()">⬇ Export JSON</button>
-    <button onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+    <button onclick="toggleAddForm()">＋ Agregar partido (eliminatorias)</button>
+    <button onclick="exportData()">⬇ Exportar JSON</button>
+    <button onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-    <button class="danger" onclick="resetAll()">☢️ Reset everything</button>
+    <button class="danger" onclick="resetAll()">☢️ Borrar todo</button>
   </div>
 
   <div class="add-form" id="addForm">
-    <input id="addDate" placeholder="Date (e.g. Sun Jun 28)" size="16">
-    <input id="addGroup" placeholder="Stage (e.g. R32)" size="8">
-    <input id="addHome" placeholder="Home team" size="14">
-    <input id="addAway" placeholder="Away team" size="14">
-    <button onclick="addMatch()">Add</button>
+    <input id="addDate" placeholder="Fecha (ej. Dom 28 Jun)" size="16">
+    <input id="addGroup" placeholder="Fase (ej. 16vos)" size="10">
+    <input id="addHome" placeholder="Local" size="14">
+    <input id="addAway" placeholder="Visitante" size="14">
+    <button onclick="addMatch()">Agregar</button>
   </div>
 
   <div id="matchList"></div>
@@ -264,40 +284,65 @@ const STORAGE_KEY = "quiniela-wc2026";
 const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 
 const TAGLINES = [
-  "Where friendships go to die, one scoreline at a time.",
-  "Last place buys the carnitas. House rules. 🌮",
-  "Remember: confidence is not a skill.",
-  "VAR can't save your picks, compa.",
-  "FIFA-certified* predictions (*absolutely not).",
-  "Five experts. Zero coaching licenses.",
-  "Statistically, someone here is always wrong. Emotionally, it's all of you.",
-  "The octopus retired. You're the next best thing. 🐙",
-  "Group stage loyalty, knockout stage betrayal.",
-  "Your gut feeling has a 0–12 record.",
-  "Penales? We don't talk about penales.",
-  "This is a safe space. The leaderboard is not.",
+  "Donde las amistades vienen a morir, marcador por marcador.",
+  "El último lugar paga las carnitas. Reglas de la casa. 🌮",
+  "Recuerda: la confianza no es una habilidad.",
+  "El VAR no puede salvar tus pronósticos, compa.",
+  "Predicciones certificadas por la FIFA* (*para nada).",
+  "Cinco expertos. Cero cursos de DT.",
+  "Estadísticamente, alguien aquí siempre se equivoca. Emocionalmente, todos.",
+  "El pulpo se jubiló. Ustedes son lo que hay. 🐙",
+  "Lealtad en fase de grupos, traición en eliminatorias.",
+  "Tu corazonada va 0–12 en el torneo.",
+  "¿Penales? De penales no hablamos.",
+  "Este es un espacio seguro. La tabla no.",
   "El que se enoja pierde. El que pierde paga. 🌮",
-  "Carnitas futures are trading high. 📈",
-  "May your 2–1s land and your amistades survive.",
-  "Somewhere, a coin flip is outperforming you.",
+  "Las carnitas cotizan al alza. 📈",
+  "Que tus 2–1 caigan y tus amistades sobrevivan.",
+  "En algún lugar, un volado pronostica mejor que tú.",
 ];
 
-// team -> flagcdn.com country code
+// equipo -> código de bandera (flags/<código>.png)
 const FLAG_CODES = {
-  "Mexico":"mx","South Africa":"za","South Korea":"kr","Czechia":"cz",
-  "Canada":"ca","Bosnia and Herzegovina":"ba","Qatar":"qa","Switzerland":"ch",
-  "Brazil":"br","Morocco":"ma","Haiti":"ht","Scotland":"gb-sct",
-  "USA":"us","Paraguay":"py","Australia":"au","Turkiye":"tr",
-  "Germany":"de","Curacao":"cw","Ivory Coast":"ci","Ecuador":"ec",
-  "Netherlands":"nl","Japan":"jp","Sweden":"se","Tunisia":"tn",
-  "Belgium":"be","Egypt":"eg","Iran":"ir","New Zealand":"nz",
-  "Spain":"es","Cape Verde":"cv","Saudi Arabia":"sa","Uruguay":"uy",
-  "France":"fr","Senegal":"sn","Iraq":"iq","Norway":"no",
-  "Argentina":"ar","Algeria":"dz","Austria":"at","Jordan":"jo",
-  "Portugal":"pt","DR Congo":"cd","Uzbekistan":"uz","Colombia":"co",
-  "England":"gb-eng","Croatia":"hr","Ghana":"gh","Panama":"pa",
+  "México":"mx","Sudáfrica":"za","Corea del Sur":"kr","Chequia":"cz",
+  "Canadá":"ca","Bosnia y Herzegovina":"ba","Catar":"qa","Suiza":"ch",
+  "Brasil":"br","Marruecos":"ma","Haití":"ht","Escocia":"gb-sct",
+  "Estados Unidos":"us","Paraguay":"py","Australia":"au","Turquía":"tr",
+  "Alemania":"de","Curazao":"cw","Costa de Marfil":"ci","Ecuador":"ec",
+  "Países Bajos":"nl","Japón":"jp","Suecia":"se","Túnez":"tn",
+  "Bélgica":"be","Egipto":"eg","Irán":"ir","Nueva Zelanda":"nz",
+  "España":"es","Cabo Verde":"cv","Arabia Saudita":"sa","Uruguay":"uy",
+  "Francia":"fr","Senegal":"sn","Irak":"iq","Noruega":"no",
+  "Argentina":"ar","Argelia":"dz","Austria":"at","Jordania":"jo",
+  "Portugal":"pt","RD del Congo":"cd","Uzbekistán":"uz","Colombia":"co",
+  "Inglaterra":"gb-eng","Croacia":"hr","Ghana":"gh","Panamá":"pa",
 };
-const ALL_TEAMS = Object.keys(FLAG_CODES).sort();
+const ALL_TEAMS = Object.keys(FLAG_CODES).sort((a, b) => a.localeCompare(b, "es"));
+
+// estados guardados antes de la traducción traen nombres en inglés
+const TEAM_MIGRATE = {
+  "Mexico":"México","South Africa":"Sudáfrica","South Korea":"Corea del Sur","Czechia":"Chequia",
+  "Canada":"Canadá","Bosnia and Herzegovina":"Bosnia y Herzegovina","Qatar":"Catar","Switzerland":"Suiza",
+  "Brazil":"Brasil","Morocco":"Marruecos","Haiti":"Haití","Scotland":"Escocia",
+  "USA":"Estados Unidos","Turkiye":"Turquía","Germany":"Alemania","Curacao":"Curazao",
+  "Ivory Coast":"Costa de Marfil","Netherlands":"Países Bajos","Japan":"Japón","Sweden":"Suecia",
+  "Tunisia":"Túnez","Belgium":"Bélgica","Egypt":"Egipto","Iran":"Irán",
+  "New Zealand":"Nueva Zelanda","Spain":"España","Cape Verde":"Cabo Verde","Saudi Arabia":"Arabia Saudita",
+  "France":"Francia","Iraq":"Irak","Norway":"Noruega","Algeria":"Argelia",
+  "Jordan":"Jordania","DR Congo":"RD del Congo","Uzbekistan":"Uzbekistán","England":"Inglaterra",
+  "Croatia":"Croacia","Panama":"Panamá",
+};
+
+function migrateTeams(s) {
+  for (const k of ["champs", "horses"]) {
+    for (const i in s[k]) if (TEAM_MIGRATE[s[k][i]]) s[k][i] = TEAM_MIGRATE[s[k][i]];
+  }
+  for (const m of s.extraMatches || []) {
+    if (TEAM_MIGRATE[m.home]) m.home = TEAM_MIGRATE[m.home];
+    if (TEAM_MIGRATE[m.away]) m.away = TEAM_MIGRATE[m.away];
+  }
+  return s;
+}
 
 function flag(team) {
   const code = FLAG_CODES[team];
@@ -305,88 +350,88 @@ function flag(team) {
 }
 function teamHtml(team) { return `${flag(team)} ${esc(team)}`; }
 
-// match #, date, group, home, away — full 2026 group stage (72 matches)
+// nº de partido, fecha, grupo, local, visitante — fase de grupos completa 2026 (72 partidos)
 const SCHEDULE = [
-  [1,"Thu Jun 11","A","Mexico","South Africa"],
-  [2,"Thu Jun 11","A","South Korea","Czechia"],
-  [3,"Fri Jun 12","B","Canada","Bosnia and Herzegovina"],
-  [4,"Fri Jun 12","D","USA","Paraguay"],
-  [5,"Sat Jun 13","B","Qatar","Switzerland"],
-  [6,"Sat Jun 13","C","Brazil","Morocco"],
-  [7,"Sat Jun 13","C","Haiti","Scotland"],
-  [8,"Sat Jun 13","D","Australia","Turkiye"],
-  [9,"Sun Jun 14","E","Germany","Curacao"],
-  [10,"Sun Jun 14","F","Netherlands","Japan"],
-  [11,"Sun Jun 14","E","Ivory Coast","Ecuador"],
-  [12,"Sun Jun 14","F","Sweden","Tunisia"],
-  [13,"Mon Jun 15","H","Spain","Cape Verde"],
-  [14,"Mon Jun 15","G","Belgium","Egypt"],
-  [15,"Mon Jun 15","H","Saudi Arabia","Uruguay"],
-  [16,"Mon Jun 15","G","Iran","New Zealand"],
-  [17,"Tue Jun 16","I","France","Senegal"],
-  [18,"Tue Jun 16","I","Iraq","Norway"],
-  [19,"Tue Jun 16","J","Argentina","Algeria"],
-  [20,"Tue Jun 16","J","Austria","Jordan"],
-  [21,"Wed Jun 17","K","Portugal","DR Congo"],
-  [22,"Wed Jun 17","L","England","Croatia"],
-  [23,"Wed Jun 17","L","Ghana","Panama"],
-  [24,"Wed Jun 17","K","Uzbekistan","Colombia"],
-  [25,"Thu Jun 18","A","Czechia","South Africa"],
-  [26,"Thu Jun 18","B","Switzerland","Bosnia and Herzegovina"],
-  [27,"Thu Jun 18","B","Canada","Qatar"],
-  [28,"Thu Jun 18","A","Mexico","South Korea"],
-  [29,"Fri Jun 19","C","Scotland","Morocco"],
-  [30,"Fri Jun 19","D","USA","Australia"],
-  [31,"Fri Jun 19","C","Brazil","Haiti"],
-  [32,"Fri Jun 19","D","Turkiye","Paraguay"],
-  [33,"Sat Jun 20","F","Netherlands","Sweden"],
-  [34,"Sat Jun 20","E","Germany","Ivory Coast"],
-  [35,"Sat Jun 20","E","Ecuador","Curacao"],
-  [36,"Sat Jun 20","F","Tunisia","Japan"],
-  [37,"Sun Jun 21","H","Spain","Saudi Arabia"],
-  [38,"Sun Jun 21","G","Belgium","Iran"],
-  [39,"Sun Jun 21","H","Uruguay","Cape Verde"],
-  [40,"Sun Jun 21","G","New Zealand","Egypt"],
-  [41,"Mon Jun 22","J","Argentina","Austria"],
-  [42,"Mon Jun 22","I","France","Iraq"],
-  [43,"Mon Jun 22","I","Norway","Senegal"],
-  [44,"Mon Jun 22","J","Jordan","Algeria"],
-  [45,"Tue Jun 23","K","Portugal","Uzbekistan"],
-  [46,"Tue Jun 23","L","England","Ghana"],
-  [47,"Tue Jun 23","L","Panama","Croatia"],
-  [48,"Tue Jun 23","K","Colombia","DR Congo"],
-  [49,"Wed Jun 24","B","Switzerland","Canada"],
-  [50,"Wed Jun 24","B","Bosnia and Herzegovina","Qatar"],
-  [51,"Wed Jun 24","C","Scotland","Brazil"],
-  [52,"Wed Jun 24","C","Morocco","Haiti"],
-  [53,"Wed Jun 24","A","Czechia","Mexico"],
-  [54,"Wed Jun 24","A","South Africa","South Korea"],
-  [55,"Thu Jun 25","E","Ecuador","Germany"],
-  [56,"Thu Jun 25","E","Curacao","Ivory Coast"],
-  [57,"Thu Jun 25","F","Japan","Sweden"],
-  [58,"Thu Jun 25","F","Tunisia","Netherlands"],
-  [59,"Thu Jun 25","D","Turkiye","USA"],
-  [60,"Thu Jun 25","D","Paraguay","Australia"],
-  [61,"Fri Jun 26","I","Norway","France"],
-  [62,"Fri Jun 26","I","Senegal","Iraq"],
-  [63,"Fri Jun 26","H","Cape Verde","Saudi Arabia"],
-  [64,"Fri Jun 26","H","Uruguay","Spain"],
-  [65,"Fri Jun 26","G","Egypt","Iran"],
-  [66,"Fri Jun 26","G","New Zealand","Belgium"],
-  [67,"Sat Jun 27","L","Panama","England"],
-  [68,"Sat Jun 27","L","Croatia","Ghana"],
-  [69,"Sat Jun 27","K","Colombia","Portugal"],
-  [70,"Sat Jun 27","K","DR Congo","Uzbekistan"],
-  [71,"Sat Jun 27","J","Algeria","Austria"],
-  [72,"Sat Jun 27","J","Jordan","Argentina"],
+  [1,"Jue 11 Jun","A","México","Sudáfrica"],
+  [2,"Jue 11 Jun","A","Corea del Sur","Chequia"],
+  [3,"Vie 12 Jun","B","Canadá","Bosnia y Herzegovina"],
+  [4,"Vie 12 Jun","D","Estados Unidos","Paraguay"],
+  [5,"Sáb 13 Jun","B","Catar","Suiza"],
+  [6,"Sáb 13 Jun","C","Brasil","Marruecos"],
+  [7,"Sáb 13 Jun","C","Haití","Escocia"],
+  [8,"Sáb 13 Jun","D","Australia","Turquía"],
+  [9,"Dom 14 Jun","E","Alemania","Curazao"],
+  [10,"Dom 14 Jun","F","Países Bajos","Japón"],
+  [11,"Dom 14 Jun","E","Costa de Marfil","Ecuador"],
+  [12,"Dom 14 Jun","F","Suecia","Túnez"],
+  [13,"Lun 15 Jun","H","España","Cabo Verde"],
+  [14,"Lun 15 Jun","G","Bélgica","Egipto"],
+  [15,"Lun 15 Jun","H","Arabia Saudita","Uruguay"],
+  [16,"Lun 15 Jun","G","Irán","Nueva Zelanda"],
+  [17,"Mar 16 Jun","I","Francia","Senegal"],
+  [18,"Mar 16 Jun","I","Irak","Noruega"],
+  [19,"Mar 16 Jun","J","Argentina","Argelia"],
+  [20,"Mar 16 Jun","J","Austria","Jordania"],
+  [21,"Mié 17 Jun","K","Portugal","RD del Congo"],
+  [22,"Mié 17 Jun","L","Inglaterra","Croacia"],
+  [23,"Mié 17 Jun","L","Ghana","Panamá"],
+  [24,"Mié 17 Jun","K","Uzbekistán","Colombia"],
+  [25,"Jue 18 Jun","A","Chequia","Sudáfrica"],
+  [26,"Jue 18 Jun","B","Suiza","Bosnia y Herzegovina"],
+  [27,"Jue 18 Jun","B","Canadá","Catar"],
+  [28,"Jue 18 Jun","A","México","Corea del Sur"],
+  [29,"Vie 19 Jun","C","Escocia","Marruecos"],
+  [30,"Vie 19 Jun","D","Estados Unidos","Australia"],
+  [31,"Vie 19 Jun","C","Brasil","Haití"],
+  [32,"Vie 19 Jun","D","Turquía","Paraguay"],
+  [33,"Sáb 20 Jun","F","Países Bajos","Suecia"],
+  [34,"Sáb 20 Jun","E","Alemania","Costa de Marfil"],
+  [35,"Sáb 20 Jun","E","Ecuador","Curazao"],
+  [36,"Sáb 20 Jun","F","Túnez","Japón"],
+  [37,"Dom 21 Jun","H","España","Arabia Saudita"],
+  [38,"Dom 21 Jun","G","Bélgica","Irán"],
+  [39,"Dom 21 Jun","H","Uruguay","Cabo Verde"],
+  [40,"Dom 21 Jun","G","Nueva Zelanda","Egipto"],
+  [41,"Lun 22 Jun","J","Argentina","Austria"],
+  [42,"Lun 22 Jun","I","Francia","Irak"],
+  [43,"Lun 22 Jun","I","Noruega","Senegal"],
+  [44,"Lun 22 Jun","J","Jordania","Argelia"],
+  [45,"Mar 23 Jun","K","Portugal","Uzbekistán"],
+  [46,"Mar 23 Jun","L","Inglaterra","Ghana"],
+  [47,"Mar 23 Jun","L","Panamá","Croacia"],
+  [48,"Mar 23 Jun","K","Colombia","RD del Congo"],
+  [49,"Mié 24 Jun","B","Suiza","Canadá"],
+  [50,"Mié 24 Jun","B","Bosnia y Herzegovina","Catar"],
+  [51,"Mié 24 Jun","C","Escocia","Brasil"],
+  [52,"Mié 24 Jun","C","Marruecos","Haití"],
+  [53,"Mié 24 Jun","A","Chequia","México"],
+  [54,"Mié 24 Jun","A","Sudáfrica","Corea del Sur"],
+  [55,"Jue 25 Jun","E","Ecuador","Alemania"],
+  [56,"Jue 25 Jun","E","Curazao","Costa de Marfil"],
+  [57,"Jue 25 Jun","F","Japón","Suecia"],
+  [58,"Jue 25 Jun","F","Túnez","Países Bajos"],
+  [59,"Jue 25 Jun","D","Turquía","Estados Unidos"],
+  [60,"Jue 25 Jun","D","Paraguay","Australia"],
+  [61,"Vie 26 Jun","I","Noruega","Francia"],
+  [62,"Vie 26 Jun","I","Senegal","Irak"],
+  [63,"Vie 26 Jun","H","Cabo Verde","Arabia Saudita"],
+  [64,"Vie 26 Jun","H","Uruguay","España"],
+  [65,"Vie 26 Jun","G","Egipto","Irán"],
+  [66,"Vie 26 Jun","G","Nueva Zelanda","Bélgica"],
+  [67,"Sáb 27 Jun","L","Panamá","Inglaterra"],
+  [68,"Sáb 27 Jun","L","Croacia","Ghana"],
+  [69,"Sáb 27 Jun","K","Colombia","Portugal"],
+  [70,"Sáb 27 Jun","K","RD del Congo","Uzbekistán"],
+  [71,"Sáb 27 Jun","J","Argelia","Austria"],
+  [72,"Sáb 27 Jun","J","Jordania","Argentina"],
 ];
 
 const RANK_TITLES = [
-  "👑 El Míster — bow before him",
-  "🥈 Almost famous",
-  "🥉 Aggressively mid-table",
-  "😬 The panic zone",
-  "🥄 Wooden spoon — carnitas are on you",
+  "👑 El Míster — inclínense ante él",
+  "🥈 Casi famoso",
+  "🥉 Medio pelo con orgullo",
+  "😬 Zona de pánico",
+  "🥄 Cuchara de palo — las carnitas van por tu cuenta",
 ];
 
 let state = load();
@@ -394,11 +439,11 @@ let state = load();
 function defaultState() {
   return {
     players: [...NAMES],
-    extraMatches: [],          // matches added by hand (knockouts)
-    picks: {},                 // picks[matchId][playerIdx] = [home, away]
-    results: {},               // results[matchId] = [home, away]
-    champs: {},                // champs[playerIdx] = team
-    horses: {},                // horses[playerIdx] = team
+    extraMatches: [],          // partidos agregados a mano (eliminatorias)
+    picks: {},                 // picks[matchId][playerIdx] = [local, visitante]
+    results: {},               // results[matchId] = [local, visitante]
+    champs: {},                // champs[playerIdx] = equipo
+    horses: {},                // horses[playerIdx] = equipo
   };
 }
 
@@ -406,12 +451,12 @@ function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const s = Object.assign(defaultState(), JSON.parse(raw));
-      // migrate pre-named saves ("Player 1"...) to the real squad
+      const s = migrateTeams(Object.assign(defaultState(), JSON.parse(raw)));
+      // saves viejos con "Player 1"... reciben la alineación real
       if (s.players.every(p => /^Player \d$/.test(p))) s.players = [...NAMES];
       return s;
     }
-  } catch (e) { /* corrupted storage falls through to a fresh state */ }
+  } catch (e) { /* storage corrupto cae a un estado nuevo */ }
   return defaultState();
 }
 
@@ -422,12 +467,12 @@ function save() {
 
 function allMatches() {
   const base = SCHEDULE.map(([num, date, group, home, away]) => ({
-    id: "m" + num, num, date, group: "Grp " + group, home, away,
+    id: "m" + num, num, date, group: "Grupo " + group, home, away,
   }));
   return base.concat(state.extraMatches);
 }
 
-// 5 = exact score, 3 = correct outcome only, 0 = miss
+// 5 = marcador exacto, 3 = solo el ganador, 0 = fallo
 function scorePick(pick, result) {
   if (!pick || !result) return null;
   const [ph, pa] = pick, [rh, ra] = result;
@@ -453,7 +498,7 @@ function totals() {
 
 const MEDALS = ["🥇", "🥈", "🥉", "😬", "🥄"];
 
-// last five judged matches as emoji form, like a real league table but meaner
+// últimos cinco partidos juzgados como racha de emojis, como tabla de liga pero más cruel
 function formLine(playerIdx) {
   const judged = allMatches().filter(m => state.results[m.id]).sort((a, b) => a.num - b.num);
   return judged.slice(-5).map(m => {
@@ -475,9 +520,9 @@ function renderLeaderboard() {
         <span class="lb-name">${esc(p.name)}</span>
         <span class="lb-pts">${p.pts}</span>
       </div>
-      <span class="lb-title">${anyPoints ? RANK_TITLES[i] : "⏳ Undefeated (so far)"}</span>
-      <span class="lb-detail">🎯 ${p.exact} exact · 🤏 ${p.winner} winner-only</span>
-      <span class="lb-detail">form ${formLine(p.idx)}${anyPoints && i > 0 ? ` · −${ranked[0].pts - p.pts} off the throne` : ""}</span>
+      <span class="lb-title">${anyPoints ? RANK_TITLES[i] : "⏳ Invicto (por ahora)"}</span>
+      <span class="lb-detail">🎯 ${p.exact} exactos · 🤏 ${p.winner} solo ganador</span>
+      <span class="lb-detail">racha ${formLine(p.idx)}${anyPoints && i > 0 ? ` · a −${ranked[0].pts - p.pts} del trono` : ""}</span>
     </div>`).join("");
   renderStats(ranked, anyPoints);
 }
@@ -492,15 +537,15 @@ function renderStats(ranked, anyPoints) {
     if (played.length && played.every(s => s === 0)) clownCount++;
   }
   const sniper = ranked.slice().sort((a, b) => b.exact - a.exact)[0];
-  const chips = [`⚖️ <b>${judged.length}</b> matches judged`];
-  if (anyPoints && sniper.exact > 0) chips.push(`🎯 Sniper-in-chief: <b>${esc(sniper.name)}</b> (${sniper.exact})`);
-  if (clownCount) chips.push(`🤡 Full-table whiffs: <b>${clownCount}</b> — incredible scenes`);
-  chips.push(`🌮 Carnitas fund: <b>${anyPoints ? esc(ranked[ranked.length - 1].name) : "TBD"}</b> currently paying`);
+  const chips = [`⚖️ <b>${judged.length}</b> partidos juzgados`];
+  if (anyPoints && sniper.exact > 0) chips.push(`🎯 Francotirador oficial: <b>${esc(sniper.name)}</b> (${sniper.exact})`);
+  if (clownCount) chips.push(`🤡 Payasadas grupales: <b>${clownCount}</b> — escenas increíbles`);
+  chips.push(`🌮 Fondo de carnitas: <b>${anyPoints ? esc(ranked[ranked.length - 1].name) : "por definir"}</b> va pagando`);
   document.getElementById("statsStrip").innerHTML = chips.map(c => `<span class="stat-chip">${c}</span>`).join("");
 }
 
 function teamOptions(selected) {
-  return `<option value="">— pick a team —</option>` + ALL_TEAMS.map(t =>
+  return `<option value="">— elige un equipo —</option>` + ALL_TEAMS.map(t =>
     `<option value="${esc(t)}" ${t === selected ? "selected" : ""}>${esc(t)}</option>`).join("");
 }
 
@@ -512,15 +557,15 @@ function renderPicks() {
     return `
     <div class="pick-card">
       <input class="pname" value="${esc(name)}" onchange="renamePlayer(${i}, this.value)">
-      <label>👑 World champion
+      <label>👑 Campeón del mundo
         <select onchange="setChamp(${i}, this.value)">${teamOptions(champ)}</select>
       </label>
-      <div class="pick-flag-line">${champ ? `${flag(champ)} <span class="who">lifts it, says ${esc(name)}</span>` : `<span class="who">no champion picked 😴</span>`}</div>
-      <label>🐴 Dark horse
+      <div class="pick-flag-line">${champ ? `${flag(champ)} <span class="who">la levanta, dice ${esc(name)}</span>` : `<span class="who">sin campeón elegido 😴</span>`}</div>
+      <label>🐴 Caballo negro
         <select onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
       </label>
-      <div class="pick-flag-line">${horse ? `${flag(horse)} <span class="who">sneaks into the semis</span>` : `<span class="who">no dark horse yet 🐴💤</span>`}</div>
-      ${clash ? `<div class="pick-warn">🤨 Your dark horse can't also be your champion. Pick a real underdog.</div>` : ""}
+      <div class="pick-flag-line">${horse ? `${flag(horse)} <span class="who">se cuela a semifinales</span>` : `<span class="who">aún sin caballo negro 🐴💤</span>`}</div>
+      ${clash ? `<div class="pick-warn">🤨 Tu caballo negro no puede ser también tu campeón. Elige un underdog de verdad.</div>` : ""}
     </div>`;
   }).join("");
 }
@@ -539,13 +584,18 @@ function renderMatches() {
   for (const [date, matches] of Object.entries(byDate)) {
     html += `<div class="date-section"><div class="date-title">${esc(date)}</div>
       <div style="overflow-x:auto"><table>
-      <tr><th>Match</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ Reality</th></tr>`;
+      <tr><th>Partido</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ La Realidad</th></tr>`;
     for (const m of matches) {
       const result = state.results[m.id];
+      let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
+      if (result && result[0] !== "" && result[1] !== "" && +result[0] !== +result[1]) {
+        if (+result[0] > +result[1]) homeHtml = `<span class="winner">${homeHtml} 🏆</span>`;
+        else awayHtml = `<span class="winner">${awayHtml} 🏆</span>`;
+      }
       html += `<tr><td class="match-cell">
-        <span class="m-num">#${m.num}</span> <span class="m-group">${esc(m.group)}</span><br>
-        <span class="m-teams">${teamHtml(m.home)} <span class="dash">vs</span> ${teamHtml(m.away)}</span>
-        ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Remove match">✕</button>` : ""}
+        <span class="m-num">#${m.num}</span> <span class="m-group">${esc(m.group)}</span>
+        ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
+        <span class="m-teams">${homeHtml} <span class="dash">vs</span> ${awayHtml}</span>
       </td>`;
       state.players.forEach((_, i) => {
         const pick = (state.picks[m.id] || {})[i] || ["", ""];
@@ -557,7 +607,7 @@ function renderMatches() {
             <span class="dash">–</span>
             <input type="number" min="0" max="99" value="${pick[1]}" onchange="setPick('${m.id}',${i},1,this.value)">
           </span>
-          ${s !== null ? `<span class="pts-badge">${s === 5 ? "🎯 +5 GOLAZO" : s === 3 ? "🤏 +3 close enough" : "💀 0"}</span>` : ""}
+          ${s !== null ? `<span class="pts-badge">${s === 5 ? "🎯 +5 GOLAZO" : s === 3 ? "🤏 +3 de panzazo" : "💀 0"}</span>` : ""}
         </td>`;
       });
       const r = result || ["", ""];
@@ -572,7 +622,7 @@ function renderMatches() {
     html += `</table></div></div>`;
   }
   document.getElementById("matchList").innerHTML = html ||
-    `<p style="color:var(--muted)">Nothing here. Either you've judged every match or none — both say something about you. 🤷</p>`;
+    `<p style="color:var(--muted)">Aquí no hay nada. O ya juzgaste todos los partidos o ninguno — las dos cosas dicen algo de ti. 🤷</p>`;
 }
 
 function renderAll() {
@@ -619,11 +669,12 @@ function announceResult(matchId) {
   const exact = scores.filter(x => x.s === 5).map(x => x.name);
   const played = scores.filter(x => x.s !== null);
   if (exact.length) {
+    golFlash();
     confettiBurst();
-    toast(`🎯 ¡GOLAZO! ${exact.join(" & ")} nailed ${m.home} ${result[0]}–${result[1]} ${m.away} on the dot. Respect.`);
+    toast(`🎯 ¡GOLAZO! ${exact.join(" y ")} ${exact.length > 1 ? "clavaron" : "clavó"} el ${m.home} ${result[0]}–${result[1]} ${m.away} al pelo. Respeto.`);
   } else if (played.length && played.every(x => x.s === 0)) {
     confettiBurst(["🤡", "💀", "📉"]);
-    toast(`🤡 ${m.home} vs ${m.away}: not a single one of you saw that coming. Incredible scenes.`, "clown");
+    toast(`🤡 ${m.home} vs ${m.away}: ni uno solo la vio venir. Escenas increíbles.`, "clown");
   }
 }
 
@@ -634,6 +685,14 @@ function toast(msg, cls) {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 5200);
+}
+
+function golFlash() {
+  const g = document.createElement("div");
+  g.className = "gol-overlay";
+  g.textContent = "¡GOOOOOL!";
+  document.body.appendChild(g);
+  setTimeout(() => g.remove(), 2000);
 }
 
 function confettiBurst(emojis) {
@@ -660,10 +719,10 @@ function toggleAddForm() {
 
 function addMatch() {
   const date = document.getElementById("addDate").value.trim();
-  const group = document.getElementById("addGroup").value.trim() || "KO";
+  const group = document.getElementById("addGroup").value.trim() || "Elim";
   const home = document.getElementById("addHome").value.trim();
   const away = document.getElementById("addAway").value.trim();
-  if (!date || !home || !away) { alert("Date, home team and away team are required. Even FIFA has standards. Barely."); return; }
+  if (!date || !home || !away) { alert("Fecha, local y visitante son obligatorios. Hasta la FIFA tiene estándares. Apenas."); return; }
   const num = 72 + state.extraMatches.length + 1;
   state.extraMatches.push({ id: "x" + Date.now(), num, date, group, home, away, extra: true });
   ["addDate", "addGroup", "addHome", "addAway"].forEach(id => document.getElementById(id).value = "");
@@ -671,7 +730,7 @@ function addMatch() {
 }
 
 function removeMatch(id) {
-  if (!confirm("Remove this match and its picks? No VAR review on this one.")) return;
+  if (!confirm("¿Quitar este partido y sus pronósticos? Aquí no hay revisión del VAR.")) return;
   state.extraMatches = state.extraMatches.filter(m => m.id !== id);
   delete state.picks[id];
   delete state.results[id];
@@ -682,7 +741,7 @@ function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "quiniela-wc2026-backup.json";
+  a.download = "quiniela-wc2026-respaldo.json";
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -693,16 +752,16 @@ function importData(event) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      state = Object.assign(defaultState(), JSON.parse(reader.result));
+      state = migrateTeams(Object.assign(defaultState(), JSON.parse(reader.result)));
       save(); renderAll();
-    } catch (e) { alert("That file is not a quiniela backup. Nice try, Diego."); }
+    } catch (e) { alert("Ese archivo no es un respaldo de la quiniela. Buen intento, Diego."); }
   };
   reader.readAsText(file);
   event.target.value = "";
 }
 
 function resetAll() {
-  if (!confirm("Delete ALL picks, results, prophecies and points? This is the nuclear option. Export a backup first if anyone's dignity is worth saving.")) return;
+  if (!confirm("¿Borrar TODOS los pronósticos, resultados, profecías y puntos? Es la opción nuclear. Exporta un respaldo primero si la dignidad de alguien vale algo.")) return;
   state = defaultState();
   save(); renderAll();
 }
@@ -711,20 +770,20 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-// ---- cloud sync: one shared pool through /api/state ----
-// localStorage stays as the instant-load cache and offline fallback; the
-// blob-backed document (rev-numbered) is the source of truth for the group.
+// ---- sincronización: una sola quiniela compartida vía /api/state ----
+// localStorage queda como caché de carga instantánea y respaldo sin conexión;
+// el documento en la nube (numerado por revisión) manda para todo el grupo.
 const API_URL = "/api/state";
 const SYNC_KEY = STORAGE_KEY + "-sync";
 let cloudRev = 0;
-let dirty = false;     // local edits not yet accepted by the server
+let dirty = false;     // cambios locales que el servidor aún no acepta
 let pushTimer = null;
 
 try {
   const meta = JSON.parse(localStorage.getItem(SYNC_KEY) || "{}");
   cloudRev = meta.rev || 0;
   dirty = !!meta.dirty;
-} catch (e) { /* fresh device */ }
+} catch (e) { /* dispositivo nuevo */ }
 
 function saveSyncMeta() {
   localStorage.setItem(SYNC_KEY, JSON.stringify({ rev: cloudRev, dirty }));
@@ -736,7 +795,7 @@ function setSync(text) {
 
 function adoptCloudDoc(doc) {
   cloudRev = doc.rev;
-  state = Object.assign(defaultState(), doc.state);
+  state = migrateTeams(Object.assign(defaultState(), doc.state));
   dirty = false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   saveSyncMeta();
@@ -746,13 +805,13 @@ function adoptCloudDoc(doc) {
 function scheduleCloudPush() {
   dirty = true;
   saveSyncMeta();
-  setSync("☁️ saving…");
+  setSync("☁️ guardando…");
   clearTimeout(pushTimer);
   pushTimer = setTimeout(pushCloud, 800);
 }
 
 async function pushCloud() {
-  setSync("☁️ saving…");
+  setSync("☁️ guardando…");
   try {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -761,8 +820,8 @@ async function pushCloud() {
     });
     if (res.status === 409) {
       adoptCloudDoc(await res.json());
-      setSync("☁️ synced");
-      toast("⚠️ Someone else saved first — showing their version. Redo your last change.");
+      setSync("☁️ sincronizado");
+      toast("⚠️ Alguien guardó primero — mostrando su versión. Vuelve a hacer tu último cambio.");
       return;
     }
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -770,15 +829,15 @@ async function pushCloud() {
     cloudRev = out.rev;
     dirty = false;
     saveSyncMeta();
-    setSync("☁️ synced");
+    setSync("☁️ sincronizado");
   } catch (e) {
-    setSync("📴 offline — saved on this device, will retry");
+    setSync("📴 sin conexión — guardado en este dispositivo");
   }
 }
 
 async function pullCloud(initial) {
   if (dirty) { pushCloud(); return; }
-  // don't yank the table out from under someone mid-keystroke
+  // no le arrebates la tabla a alguien a media tecla
   if (!initial && document.activeElement && document.activeElement.tagName === "INPUT") return;
   try {
     const res = await fetch(API_URL, { cache: "no-store" });
@@ -786,16 +845,16 @@ async function pullCloud(initial) {
     const doc = await res.json();
     if (doc.state) {
       if (doc.rev !== cloudRev) adoptCloudDoc(doc);
-      setSync("☁️ synced");
+      setSync("☁️ sincronizado");
     } else if (initial) {
-      // empty pool in the cloud: first device online seeds it with its local data
+      // quiniela vacía en la nube: el primer dispositivo en línea la siembra con lo suyo
       dirty = true;
       pushCloud();
     } else {
-      setSync("☁️ synced");
+      setSync("☁️ sincronizado");
     }
   } catch (e) {
-    setSync(initial ? "📴 offline — using this device's data" : "📴 offline — will retry");
+    setSync(initial ? "📴 sin conexión — datos de este dispositivo" : "📴 sin conexión — reintentando");
   }
 }
 
