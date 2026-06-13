@@ -149,6 +149,8 @@
   .m-teams { font-weight: 600; font-size: 17px; }
   .m-group { color: var(--accent); font-size: 13px; }
   .winner { color: var(--gold); font-weight: 800; }
+  .lock-tag { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .score-pair input:disabled { opacity: .55; cursor: not-allowed; border-style: dashed; }
 
   .score-pair { display: inline-flex; align-items: center; gap: 3px; }
   .score-pair input {
@@ -300,7 +302,6 @@
     <button onclick="exportData()">⬇ Exportar JSON</button>
     <button onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-    <button class="danger" onclick="resetAll()">☢️ Borrar todo</button>
   </div>
 
   <div class="add-form" id="addForm">
@@ -317,6 +318,10 @@
 <script>
 const STORAGE_KEY = "quiniela-wc2026";
 const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
+
+// fechas cerradas: ya se jugaron, los pronósticos quedan congelados (la columna
+// de resultados sigue editable). Agrega fechas aquí conforme avance el torneo.
+const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 
 const TAGLINES = [
   "Donde las amistades vienen a morir, marcador por marcador.",
@@ -617,7 +622,8 @@ function renderMatches() {
 
   let html = "";
   for (const [date, matches] of Object.entries(byDate)) {
-    html += `<div class="date-section"><div class="date-title">${esc(date)}</div>
+    const locked = LOCKED_DATES.has(date);
+    html += `<div class="date-section"><div class="date-title">${esc(date)}${locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}</div>
       <div style="overflow-x:auto"><table>
       <tr><th>Partido</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ La Realidad</th></tr>`;
     for (const m of matches) {
@@ -636,11 +642,12 @@ function renderMatches() {
         const pick = (state.picks[m.id] || {})[i] || ["", ""];
         const s = scorePick(pick, result);
         const cls = s === 5 ? "pts-5" : s === 3 ? "pts-3" : s === 0 ? "pts-0" : "";
+        const dis = locked ? "disabled" : "";
         html += `<td class="${cls}">
           <span class="score-pair">
-            <input type="number" min="0" max="99" value="${pick[0]}" onchange="setPick('${m.id}',${i},0,this.value)">
+            <input type="number" min="0" max="99" value="${pick[0]}" ${dis} onchange="setPick('${m.id}',${i},0,this.value)">
             <span class="dash">–</span>
-            <input type="number" min="0" max="99" value="${pick[1]}" onchange="setPick('${m.id}',${i},1,this.value)">
+            <input type="number" min="0" max="99" value="${pick[1]}" ${dis} onchange="setPick('${m.id}',${i},1,this.value)">
           </span>
           ${s !== null ? `<span class="pts-badge">${s === 5 ? "🎯 +5 GOLAZO" : s === 3 ? "🤏 +3 de panzazo" : "💀 0"}</span>` : ""}
         </td>`;
@@ -682,6 +689,8 @@ function setHorse(i, team) {
 }
 
 function setPick(matchId, playerIdx, side, value) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (m && LOCKED_DATES.has(m.date)) { renderMatches(); return; }  // fecha cerrada
   const picks = state.picks[matchId] = state.picks[matchId] || {};
   const pick = picks[playerIdx] = picks[playerIdx] || ["", ""];
   pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
@@ -793,12 +802,6 @@ function importData(event) {
   };
   reader.readAsText(file);
   event.target.value = "";
-}
-
-function resetAll() {
-  if (!confirm("¿Borrar TODOS los pronósticos, resultados, profecías y puntos? Es la opción nuclear. Exporta un respaldo primero si la dignidad de alguien vale algo.")) return;
-  state = defaultState();
-  save(); renderAll();
 }
 
 function esc(s) {
