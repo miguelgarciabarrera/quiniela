@@ -767,7 +767,7 @@ function renderMatches() {
             <span class="dash">–</span>
             <input type="number" min="0" max="99" value="${pick[1]}" ${dis} onchange="setPick('${m.id}',${i},1,this.value)">
           </span>
-          ${s !== null ? `<span class="pts-badge">${s === 5 ? "Golazo +5" : s === 3 ? "Cerca +3" : "Fallo 0"}</span>` : ""}
+          ${s !== null ? `<span class="pts-badge">${s === 5 ? "Golazo +5" : s === 3 ? "Cerca +3" : "Pifia +0"}</span>` : ""}
         </td>`;
       });
       const r = result || ["", ""];
