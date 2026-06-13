@@ -323,6 +323,24 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 // de resultados sigue editable). Agrega fechas aquí conforme avance el torneo.
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 
+// candidatos a la Bota de Oro (goleador del torneo). t = país, para la bandera.
+const BOOT_PLAYERS = [
+  { n: "Erling Haaland", t: "Noruega" },
+  { n: "Kylian Mbappé", t: "Francia" },
+  { n: "Harry Kane", t: "Inglaterra" },
+  { n: "Lamine Yamal", t: "España" },
+  { n: "Ousmane Dembélé", t: "Francia" },
+  { n: "Cristiano Ronaldo", t: "Portugal" },
+  { n: "Lionel Messi", t: "Argentina" },
+  { n: "Julián Quiñones", t: "México" },
+  { n: "Raúl Jiménez", t: "México" },
+  { n: "Luis Díaz", t: "Colombia" },
+  { n: "Bukayo Saka", t: "Inglaterra" },
+  { n: "Raphinha", t: "Brasil" },
+  { n: "Vinícius Júnior", t: "Brasil" },
+];
+const BOOT_TEAM = Object.fromEntries(BOOT_PLAYERS.map(p => [p.n, p.t]));
+
 const TAGLINES = [
   "Donde las amistades vienen a morir, marcador por marcador.",
   "El último lugar paga las carnitas. Reglas de la casa. 🌮",
@@ -484,6 +502,7 @@ function defaultState() {
     results: {},               // results[matchId] = [local, visitante]
     champs: {},                // champs[playerIdx] = equipo
     horses: {},                // horses[playerIdx] = equipo
+    boots: {},                 // boots[playerIdx] = nombre del goleador (bota de oro)
   };
 }
 
@@ -589,10 +608,16 @@ function teamOptions(selected) {
     `<option value="${esc(t)}" ${t === selected ? "selected" : ""}>${esc(t)}</option>`).join("");
 }
 
+function bootOptions(selected) {
+  return `<option value="">— elige un goleador —</option>` + BOOT_PLAYERS.map(p =>
+    `<option value="${esc(p.n)}" ${p.n === selected ? "selected" : ""}>${esc(p.n)} (${esc(p.t)})</option>`).join("");
+}
+
 function renderPicks() {
   document.getElementById("pickGrid").innerHTML = state.players.map((name, i) => {
     const champ = state.champs[i] || "";
     const horse = state.horses[i] || "";
+    const boot = state.boots[i] || "";
     const clash = champ && champ === horse;
     return `
     <div class="pick-card">
@@ -605,6 +630,10 @@ function renderPicks() {
         <select onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
       </label>
       <div class="pick-flag-line">${horse ? `${flag(horse)} <span class="who">se cuela a semifinales</span>` : `<span class="who">aún sin caballo negro 🐴💤</span>`}</div>
+      <label>🥇 Bota de oro
+        <select onchange="setBoot(${i}, this.value)">${bootOptions(boot)}</select>
+      </label>
+      <div class="pick-flag-line">${boot ? `${flag(BOOT_TEAM[boot])} <span class="who">se lleva el botín de goles</span>` : `<span class="who">aún sin goleador ⚽💤</span>`}</div>
       ${clash ? `<div class="pick-warn">🤨 Tu caballo negro no puede ser también tu campeón. Elige un underdog de verdad.</div>` : ""}
     </div>`;
   }).join("");
@@ -685,6 +714,11 @@ function setChamp(i, team) {
 
 function setHorse(i, team) {
   state.horses[i] = team;
+  save(); renderPicks();
+}
+
+function setBoot(i, player) {
+  state.boots[i] = player;
   save(); renderPicks();
 }
 
