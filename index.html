@@ -628,6 +628,7 @@ function renderMatches() {
       <tr><th>Partido</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ La Realidad</th></tr>`;
     for (const m of matches) {
       const result = state.results[m.id];
+      const dis = locked ? "disabled" : "";
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       if (result && result[0] !== "" && result[1] !== "" && +result[0] !== +result[1]) {
         if (+result[0] > +result[1]) homeHtml = `<span class="winner">${homeHtml} 🏆</span>`;
@@ -642,7 +643,6 @@ function renderMatches() {
         const pick = (state.picks[m.id] || {})[i] || ["", ""];
         const s = scorePick(pick, result);
         const cls = s === 5 ? "pts-5" : s === 3 ? "pts-3" : s === 0 ? "pts-0" : "";
-        const dis = locked ? "disabled" : "";
         html += `<td class="${cls}">
           <span class="score-pair">
             <input type="number" min="0" max="99" value="${pick[0]}" ${dis} onchange="setPick('${m.id}',${i},0,this.value)">
@@ -655,9 +655,9 @@ function renderMatches() {
       const r = result || ["", ""];
       html += `<td class="result-cell">
         <span class="score-pair">
-          <input type="number" min="0" max="99" value="${r[0]}" onchange="setResult('${m.id}',0,this.value)">
+          <input type="number" min="0" max="99" value="${r[0]}" ${dis} onchange="setResult('${m.id}',0,this.value)">
           <span class="dash">–</span>
-          <input type="number" min="0" max="99" value="${r[1]}" onchange="setResult('${m.id}',1,this.value)">
+          <input type="number" min="0" max="99" value="${r[1]}" ${dis} onchange="setResult('${m.id}',1,this.value)">
         </span>
       </td></tr>`;
     }
@@ -698,6 +698,8 @@ function setPick(matchId, playerIdx, side, value) {
 }
 
 function setResult(matchId, side, value) {
+  const lm = allMatches().find(x => x.id === matchId);
+  if (lm && LOCKED_DATES.has(lm.date)) { renderMatches(); return; }  // fecha cerrada
   const r = state.results[matchId] = state.results[matchId] || ["", ""];
   r[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   if (r[0] === "" && r[1] === "") delete state.results[matchId];
