@@ -686,8 +686,8 @@ function renderStats(ranked, anyPoints) {
   }
   const sniper = ranked.slice().sort((a, b) => b.exact - a.exact)[0];
   const chips = [`<b>${judged.length}</b> partidos juzgados`];
-  if (anyPoints && sniper.exact > 0) chips.push(`Francotirador: <b>${esc(sniper.name)}</b> (${sniper.exact} exactos)`);
-  if (clownCount) chips.push(`Payasadas grupales: <b>${clownCount}</b>`);
+  if (anyPoints && sniper.exact > 0) chips.push(`🎯 Francotirador: <b>${esc(sniper.name)}</b> (${sniper.exact} exactos)`);
+  if (clownCount) chips.push(`🤡 Payasadas grupales: <b>${clownCount}</b>`);
   chips.push(`🌮 Carnitas: las paga <b>${anyPoints ? esc(ranked[ranked.length - 1].name) : "por definir"}</b>`);
   document.getElementById("statsStrip").innerHTML = chips.map(c => `<span class="stat-chip">${c}</span>`).join("");
 }
