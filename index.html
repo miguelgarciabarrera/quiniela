@@ -300,8 +300,6 @@
     </select>
     <button onclick="toggleAddForm()">＋ Agregar partido (eliminatorias)</button>
     <button onclick="exportData()">⬇ Exportar JSON</button>
-    <button onclick="document.getElementById('importFile').click()">⬆ Importar JSON</button>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
   </div>
 
   <div class="add-form" id="addForm">
@@ -825,20 +823,6 @@ function exportData() {
   a.download = "quiniela-wc2026-respaldo.json";
   a.click();
   URL.revokeObjectURL(a.href);
-}
-
-function importData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      state = migrateTeams(Object.assign(defaultState(), JSON.parse(reader.result)));
-      save(); renderAll();
-    } catch (e) { alert("Ese archivo no es un respaldo de la quiniela. Buen intento, Diego."); }
-  };
-  reader.readAsText(file);
-  event.target.value = "";
 }
 
 function esc(s) {
