@@ -311,10 +311,31 @@
     border-radius: 999px; padding: 5px 12px;
   }
 
+  /* banda-póster con el balón, arriba de todo (no sticky) */
+  .hero {
+    position: relative; width: 100%; line-height: 0;
+    height: clamp(170px, 23vw, 320px); overflow: hidden;
+    background: #0e1614;
+  }
+  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, transparent 58%, #0b100e 99%);
+  }
+  .hero-tag {
+    position: absolute; left: 24px; bottom: 14px; z-index: 1;
+    font-family: "Space Grotesk", sans-serif; line-height: 1.2;
+    font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+    color: var(--text); background: #0b100ecc; border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 13px; backdrop-filter: blur(4px);
+  }
+
   /* teléfono: el header deja de ser sticky (se comía toda la pantalla),
      la tabla de líderes y los chips se deslizan en una sola fila */
   @media (max-width: 760px) {
     body { font-size: 15px; }
+    .hero { height: clamp(150px, 42vw, 220px); }
+    .hero-tag { left: 14px; bottom: 10px; font-size: 10px; padding: 5px 10px; }
     header { position: static; padding: 12px 14px; }
     h1 { font-size: 38px; }
     .tagline { font-size: 13px; margin: 0 0 10px; }
@@ -348,6 +369,11 @@
 </style>
 </head>
 <body>
+
+<div class="hero">
+  <img src="/trionda.jpg" alt="Balón oficial TRIONDA del Mundial 2026" onerror="this.closest('.hero').style.display='none'">
+  <span class="hero-tag">El balón oficial · Mundial 2026</span>
+</div>
 
 <header>
   <span class="sync-chip" id="syncStatus">conectando…</span>
