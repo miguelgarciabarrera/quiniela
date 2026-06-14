@@ -188,6 +188,27 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; font-size: 15px;
   }
 
+  .activity {
+    margin: 16px 0 0; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; max-width: 460px; overflow: hidden;
+  }
+  .activity summary {
+    cursor: pointer; list-style: none; padding: 11px 16px;
+    font-size: 13px; font-weight: 600; color: var(--muted); user-select: none;
+  }
+  .activity summary::-webkit-details-marker { display: none; }
+  .activity summary::after { content: " ▸"; color: var(--muted); }
+  .activity[open] summary::after { content: " ▾"; }
+  .activity summary:hover { color: var(--text); }
+  #activityList { padding: 2px 16px 12px; }
+  .act-row {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 7px 0; border-top: 1px solid var(--border);
+  }
+  .act-name { font-weight: 700; font-size: 14px; }
+  .act-when { margin-left: auto; font-size: 13px; color: var(--accent); }
+  .act-when.none { color: var(--muted); font-style: italic; }
+
   .date-section { margin-top: 30px; }
   .date-title {
     font-family: var(--display); font-weight: 400; letter-spacing: 1px;
@@ -380,6 +401,11 @@
   <h2>Las Profecías</h2>
   <p class="section-sub">Antes que nada: ¿quién levanta la copa y cuál es tu caballo negro — el equipo que nadie respeta y aun así se mete hasta semifinales? Queda por escrito para que luego no haya "yo siempre lo dije".</p>
   <div class="pick-grid" id="pickGrid"></div>
+
+  <details class="activity">
+    <summary>🕒 Última actividad — cuándo se editó cada jugador</summary>
+    <div id="activityList"></div>
+  </details>
 
   <div class="toolbar">
     <select id="filterSel">
@@ -597,6 +623,7 @@ function defaultState() {
     horses: {},                // horses[playerIdx] = equipo
     boots: {},                 // boots[playerIdx] = nombre del goleador (bota de oro)
     flops: {},                 // flops[playerIdx] = equipo decepción
+    lastEdit: {},              // lastEdit[playerIdx] = timestamp (ms) del último cambio de sus pronósticos
   };
 }
 
@@ -818,6 +845,40 @@ function renderAll() {
   renderLeaderboard();
   renderPicks();
   renderMatches();
+  renderActivity();
+}
+
+// tiempo relativo en español, p.ej. "hace 2 h", "ayer 21:30", "13 jun 18:04"
+function relTime(ts) {
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "hace un momento";
+  if (min < 60) return `hace ${min} min`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `hace ${hr} h`;
+  const days = Math.floor(hr / 24);
+  if (days === 1) return "ayer";
+  if (days < 7) return `hace ${days} días`;
+  return absTime(ts);
+}
+function absTime(ts) {
+  return new Date(ts).toLocaleString("es-MX",
+    { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function renderActivity() {
+  const el = document.getElementById("activityList");
+  if (!el) return;
+  const edits = state.lastEdit || {};
+  el.innerHTML = state.players.map((name, i) => {
+    const ts = edits[i];
+    return `<div class="act-row">
+      <span class="act-name">${esc(name)}</span>
+      ${ts
+        ? `<span class="act-when" title="${esc(absTime(ts))}">${esc(relTime(ts))}</span>`
+        : `<span class="act-when none">sin registro</span>`}
+    </div>`;
+  }).join("");
 }
 
 function renamePlayer(i, name) {
@@ -825,24 +886,33 @@ function renamePlayer(i, name) {
   save(); renderAll();
 }
 
+function stampEdit(i) {
+  state.lastEdit = state.lastEdit || {};
+  state.lastEdit[i] = Date.now();
+}
+
 function setChamp(i, team) {
   state.champs[i] = team;
-  save(); renderPicks();
+  stampEdit(i);
+  save(); renderPicks(); renderActivity();
 }
 
 function setHorse(i, team) {
   state.horses[i] = team;
-  save(); renderPicks();
+  stampEdit(i);
+  save(); renderPicks(); renderActivity();
 }
 
 function setBoot(i, player) {
   state.boots[i] = player;
-  save(); renderPicks();
+  stampEdit(i);
+  save(); renderPicks(); renderActivity();
 }
 
 function setFlop(i, team) {
   state.flops[i] = team;
-  save(); renderPicks();
+  stampEdit(i);
+  save(); renderPicks(); renderActivity();
 }
 
 function setPick(matchId, playerIdx, side, value) {
@@ -851,7 +921,8 @@ function setPick(matchId, playerIdx, side, value) {
   const picks = state.picks[matchId] = state.picks[matchId] || {};
   const pick = picks[playerIdx] = picks[playerIdx] || ["", ""];
   pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
-  save(); renderLeaderboard(); renderMatches();
+  stampEdit(playerIdx);
+  save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
 function setResult(matchId, side, value) {
@@ -1057,6 +1128,7 @@ document.getElementById("filterSel").addEventListener("change", renderMatches);
 renderAll();
 pullCloud(true);
 setInterval(() => pullCloud(false), 20000);
+setInterval(renderActivity, 60000);  // mantiene fresco el "hace X" sin esperar a otro cambio
 document.addEventListener("visibilitychange", () => { if (!document.hidden) pullCloud(false); });
 </script>
 </body>
