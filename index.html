@@ -891,7 +891,7 @@ function renderActivity() {
     }
     return `<div class="act-row">
       <span class="act-name">${esc(name)}</span>
-      <span class="act-what">${esc(info.what)}</span>
+      <span class="act-what" title="${esc(info.what)}">${esc(info.what)}</span>
       <span class="act-when" title="${esc(absTime(info.ts))}">${esc(relTime(info.ts))}</span>
     </div>`;
   }).join("");
@@ -931,13 +931,22 @@ function setFlop(i, team) {
   save(); renderPicks(); renderActivity();
 }
 
+function fmtScore(p) {
+  const a = (!p || p[0] === "" || p[0] == null) ? "·" : p[0];
+  const b = (!p || p[1] === "" || p[1] == null) ? "·" : p[1];
+  return `${a}–${b}`;
+}
+
 function setPick(matchId, playerIdx, side, value) {
   const m = allMatches().find(x => x.id === matchId);
   if (m && isLocked(m)) { renderMatches(); return; }  // cerrado
   const picks = state.picks[matchId] = state.picks[matchId] || {};
+  const before = picks[playerIdx] ? [...picks[playerIdx]] : ["", ""];
   const pick = picks[playerIdx] = picks[playerIdx] || ["", ""];
   pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
-  stampEdit(playerIdx, m ? `marcador ${m.home}–${m.away}` : "marcador");
+  const wasEmpty = before[0] === "" && before[1] === "";
+  const change = wasEmpty ? fmtScore(pick) : `${fmtScore(before)} → ${fmtScore(pick)}`;
+  stampEdit(playerIdx, m ? `marcador ${m.home} vs ${m.away}: ${change}` : "marcador");
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
