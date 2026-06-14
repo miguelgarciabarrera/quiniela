@@ -409,7 +409,7 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 // fechas cerradas: día completo congelado. Agrega fechas conforme avance el torneo.
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
-const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía
+const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía, Alemania-Curazao
 function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
