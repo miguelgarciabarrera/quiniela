@@ -312,19 +312,40 @@
     border-radius: 999px; padding: 5px 12px;
   }
 
-  /* banda-póster de dos paneles (balón + la escuadra), arriba de todo (no sticky) */
+  /* banda-póster con el balón, arriba de todo (no sticky) */
   .hero {
-    position: relative; width: 100%; line-height: 0; display: flex; gap: 2px;
-    height: clamp(180px, 24vw, 340px); overflow: hidden;
+    position: relative; width: 100%; line-height: 0;
+    height: clamp(170px, 23vw, 320px); overflow: hidden;
     background: #0e1614;
   }
-  .hero img { flex: 1 1 0; min-width: 0; height: 100%; object-fit: cover; display: block; }
-  .hero img.ball { object-position: center 40%; }
-  .hero img.squad { object-position: center 32%; flex: 0 0 42%; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
   .hero::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(180deg, transparent 58%, #0b100e 99%);
   }
+
+  /* la escuadra: foto enmarcada como cierre, abajo de todo */
+  .crew { max-width: 1600px; margin: 0 auto; padding: 0 24px 64px; }
+  .crew-head {
+    display: flex; align-items: center; gap: 14px; margin: 8px 0 16px;
+    color: var(--muted); font-size: 13px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .crew-head::before, .crew-head::after { content: ""; height: 1px; flex: 1; background: var(--border); }
+  .crew figure {
+    margin: 0 auto; max-width: 620px; position: relative; overflow: hidden;
+    border-radius: 16px; border: 1px solid var(--border);
+    box-shadow: 0 24px 60px #00000077; line-height: 0;
+  }
+  .crew img { width: 100%; display: block; aspect-ratio: 5 / 4; object-fit: cover; object-position: center 30%; }
+  .crew figcaption {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 34px 18px 14px; line-height: 1;
+    font-family: var(--display); letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 24px; color: var(--text);
+    background: linear-gradient(180deg, transparent, #0b100eee);
+  }
+  .crew figcaption span { color: var(--gold); }
 
   /* teléfono: el header deja de ser sticky (se comía toda la pantalla),
      la tabla de líderes y los chips se deslizan en una sola fila */
@@ -366,8 +387,7 @@
 <body>
 
 <div class="hero">
-  <img class="ball" src="/trionda.jpg" alt="Balón oficial TRIONDA del Mundial 2026" onerror="this.remove()">
-  <img class="squad" src="/squad.jpg" alt="La escuadra en el Mundial" onerror="this.remove()">
+  <img src="/trionda.jpg" alt="Balón oficial TRIONDA del Mundial 2026" onerror="this.closest('.hero').style.display='none'">
 </div>
 
 <header>
@@ -404,6 +424,14 @@
 
   <div id="matchList"></div>
 </main>
+
+<footer class="crew">
+  <div class="crew-head">La escuadra</div>
+  <figure>
+    <img src="/squad.jpg" alt="La escuadra en el Mundial" onerror="this.closest('.crew').style.display='none'">
+    <figcaption>Los cinco brujos · <span>Mundial 2026</span></figcaption>
+  </figure>
+</footer>
 
 <script>
 const STORAGE_KEY = "quiniela-wc2026";
