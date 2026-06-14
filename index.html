@@ -312,13 +312,15 @@
     border-radius: 999px; padding: 5px 12px;
   }
 
-  /* banda-póster con el balón, arriba de todo (no sticky) */
+  /* banda-póster de dos paneles (balón + la escuadra), arriba de todo (no sticky) */
   .hero {
-    position: relative; width: 100%; line-height: 0;
-    height: clamp(170px, 23vw, 320px); overflow: hidden;
+    position: relative; width: 100%; line-height: 0; display: flex; gap: 2px;
+    height: clamp(180px, 24vw, 340px); overflow: hidden;
     background: #0e1614;
   }
-  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
+  .hero img { flex: 1 1 0; min-width: 0; height: 100%; object-fit: cover; display: block; }
+  .hero img.ball { object-position: center 40%; }
+  .hero img.squad { object-position: center 32%; flex: 0 0 42%; }
   .hero::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(180deg, transparent 58%, #0b100e 99%);
@@ -364,7 +366,8 @@
 <body>
 
 <div class="hero">
-  <img src="/trionda.jpg" alt="Balón oficial TRIONDA del Mundial 2026" onerror="this.closest('.hero').style.display='none'">
+  <img class="ball" src="/trionda.jpg" alt="Balón oficial TRIONDA del Mundial 2026" onerror="this.remove()">
+  <img class="squad" src="/squad.jpg" alt="La escuadra en el Mundial" onerror="this.remove()">
 </div>
 
 <header>
