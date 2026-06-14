@@ -211,6 +211,7 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .act-what.none { font-style: italic; }
+  .act-what img.flag { width: 18px; height: 13px; vertical-align: -2px; }
   .act-when { margin-left: auto; flex-shrink: 0; font-size: 13px; color: var(--accent); }
 
   .date-section { margin-top: 30px; }
@@ -439,7 +440,7 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 // fechas cerradas: día completo congelado. Agrega fechas conforme avance el torneo.
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
-const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía, Alemania-Curazao
+const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9", "m10"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía, Alemania-Curazao, Países Bajos-Japón
 function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
@@ -877,6 +878,22 @@ function editInfo(e) {
   return { ts: e.ts, what: e.what || "" };
 }
 
+// escapa el texto y solo inyecta banderas para códigos válidos ([flag:mx] -> img)
+const FLAG_CODE_SET = new Set(Object.values(FLAG_CODES));
+function whatHtml(what) {
+  return esc(what).replace(/\[flag:([a-z-]+)\]/g, (_, code) =>
+    FLAG_CODE_SET.has(code) ? `<img class="flag" src="flags/${code}.png" alt="">` : "");
+}
+
+// equipos por longitud desc, para no chocar nombres que contienen a otros
+const FLAGIFY_TEAMS = ALL_TEAMS.slice().sort((a, b) => b.length - a.length);
+// escapa el texto y cambia cada nombre de equipo por su bandera (HTML seguro)
+function flagifyText(str) {
+  let html = esc(str);
+  for (const t of FLAGIFY_TEAMS) html = html.split(esc(t)).join(flag(t));
+  return html;
+}
+
 function renderActivity() {
   const el = document.getElementById("activityList");
   if (!el) return;
@@ -891,7 +908,7 @@ function renderActivity() {
     }
     return `<div class="act-row">
       <span class="act-name">${esc(name)}</span>
-      <span class="act-what" title="${esc(info.what)}">${esc(info.what)}</span>
+      <span class="act-what">${whatHtml(info.what)}</span>
       <span class="act-when" title="${esc(absTime(info.ts))}">${esc(relTime(info.ts))}</span>
     </div>`;
   }).join("");
@@ -946,7 +963,7 @@ function setPick(matchId, playerIdx, side, value) {
   pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   const wasEmpty = before[0] === "" && before[1] === "";
   const change = wasEmpty ? fmtScore(pick) : `${fmtScore(before)} → ${fmtScore(pick)}`;
-  stampEdit(playerIdx, m ? `${m.home} vs ${m.away}: ${change}` : change);
+  stampEdit(playerIdx, m ? `[flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]: ${change}` : change);
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
