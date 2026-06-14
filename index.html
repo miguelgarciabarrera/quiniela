@@ -158,6 +158,7 @@
   .pick-card label.champ { color: var(--gold); }
   .pick-card label.horse { color: var(--hot); }
   .pick-card label.boot { color: var(--accent); }
+  .pick-card label.flop { color: var(--red-b); }
   .pick-card select {
     background: var(--panel2); color: var(--text);
     border: 1px solid var(--border); border-radius: 7px;
@@ -411,6 +412,9 @@ const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 const LOCKED_MATCHES = new Set(["m5", "m6"]);  // Catar vs Suiza, Brasil vs Marruecos
 function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
 
+// candidatas a la Decepción: favoritas que prometen y fallan.
+const DECEPCION_TEAMS = ["Argentina", "España", "Francia", "Inglaterra", "Portugal", "Brasil", "Países Bajos", "Alemania"];
+
 // candidatos a la Bota de Oro (goleador del torneo). t = país, para la bandera.
 const BOOT_PLAYERS = [
   { n: "Erling Haaland", t: "Noruega" },
@@ -481,7 +485,7 @@ const TEAM_MIGRATE = {
 };
 
 function migrateTeams(s) {
-  for (const k of ["champs", "horses"]) {
+  for (const k of ["champs", "horses", "flops"]) {
     for (const i in s[k]) if (TEAM_MIGRATE[s[k][i]]) s[k][i] = TEAM_MIGRATE[s[k][i]];
   }
   for (const m of s.extraMatches || []) {
@@ -592,6 +596,7 @@ function defaultState() {
     champs: {},                // champs[playerIdx] = equipo
     horses: {},                // horses[playerIdx] = equipo
     boots: {},                 // boots[playerIdx] = nombre del goleador (bota de oro)
+    flops: {},                 // flops[playerIdx] = equipo decepción
   };
 }
 
@@ -704,11 +709,17 @@ function bootOptions(selected) {
     `<option value="${esc(p.n)}" ${p.n === selected ? "selected" : ""}>${esc(p.n)} (${esc(p.t)})</option>`).join("");
 }
 
+function decepcionOptions(selected) {
+  return `<option value="">— elige un equipo —</option>` + DECEPCION_TEAMS.map(t =>
+    `<option value="${esc(t)}" ${t === selected ? "selected" : ""}>${esc(t)}</option>`).join("");
+}
+
 function renderPicks() {
   document.getElementById("pickGrid").innerHTML = state.players.map((name, i) => {
     const champ = state.champs[i] || "";
     const horse = state.horses[i] || "";
     const boot = state.boots[i] || "";
+    const flop = state.flops[i] || "";
     const clash = champ && champ === horse;
     return `
     <div class="pick-card">
@@ -725,6 +736,10 @@ function renderPicks() {
         <select onchange="setBoot(${i}, this.value)">${bootOptions(boot)}</select>
       </label>
       <div class="pick-flag-line">${boot ? `${flag(BOOT_TEAM[boot])} <span class="who">se lleva el botín de goles</span>` : `<span class="who">aún sin goleador</span>`}</div>
+      <label class="flop">La decepción
+        <select onchange="setFlop(${i}, this.value)">${decepcionOptions(flop)}</select>
+      </label>
+      <div class="pick-flag-line">${flop ? `${flag(flop)} <span class="who">promete y decepciona</span>` : `<span class="who">aún sin decepción</span>`}</div>
       ${clash ? `<div class="pick-warn">Tu caballo negro no puede ser también tu campeón. Elige un underdog de verdad.</div>` : ""}
     </div>`;
   }).join("");
@@ -812,6 +827,11 @@ function setHorse(i, team) {
 
 function setBoot(i, player) {
   state.boots[i] = player;
+  save(); renderPicks();
+}
+
+function setFlop(i, team) {
+  state.flops[i] = team;
   save(); renderPicks();
 }
 
