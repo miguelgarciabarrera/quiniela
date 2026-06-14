@@ -205,9 +205,13 @@
     display: flex; align-items: baseline; gap: 10px;
     padding: 7px 0; border-top: 1px solid var(--border);
   }
-  .act-name { font-weight: 700; font-size: 14px; }
-  .act-when { margin-left: auto; font-size: 13px; color: var(--accent); }
-  .act-when.none { color: var(--muted); font-style: italic; }
+  .act-name { font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .act-what {
+    flex: 1; min-width: 0; font-size: 13px; color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .act-what.none { font-style: italic; }
+  .act-when { margin-left: auto; flex-shrink: 0; font-size: 13px; color: var(--accent); }
 
   .date-section { margin-top: 30px; }
   .date-title {
@@ -866,17 +870,29 @@ function absTime(ts) {
     { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+// admite el formato viejo (solo número) y el nuevo ({ ts, what })
+function editInfo(e) {
+  if (e == null) return null;
+  if (typeof e === "number") return { ts: e, what: "" };
+  return { ts: e.ts, what: e.what || "" };
+}
+
 function renderActivity() {
   const el = document.getElementById("activityList");
   if (!el) return;
   const edits = state.lastEdit || {};
   el.innerHTML = state.players.map((name, i) => {
-    const ts = edits[i];
+    const info = editInfo(edits[i]);
+    if (!info) {
+      return `<div class="act-row">
+        <span class="act-name">${esc(name)}</span>
+        <span class="act-what none">sin registro</span>
+      </div>`;
+    }
     return `<div class="act-row">
       <span class="act-name">${esc(name)}</span>
-      ${ts
-        ? `<span class="act-when" title="${esc(absTime(ts))}">${esc(relTime(ts))}</span>`
-        : `<span class="act-when none">sin registro</span>`}
+      <span class="act-what">${esc(info.what)}</span>
+      <span class="act-when" title="${esc(absTime(info.ts))}">${esc(relTime(info.ts))}</span>
     </div>`;
   }).join("");
 }
@@ -886,32 +902,32 @@ function renamePlayer(i, name) {
   save(); renderAll();
 }
 
-function stampEdit(i) {
+function stampEdit(i, what) {
   state.lastEdit = state.lastEdit || {};
-  state.lastEdit[i] = Date.now();
+  state.lastEdit[i] = { ts: Date.now(), what: what };
 }
 
 function setChamp(i, team) {
   state.champs[i] = team;
-  stampEdit(i);
+  stampEdit(i, "campeón: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
 function setHorse(i, team) {
   state.horses[i] = team;
-  stampEdit(i);
+  stampEdit(i, "caballo negro: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
 function setBoot(i, player) {
   state.boots[i] = player;
-  stampEdit(i);
+  stampEdit(i, "bota de oro: " + (player || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
 function setFlop(i, team) {
   state.flops[i] = team;
-  stampEdit(i);
+  stampEdit(i, "decepción: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
@@ -921,7 +937,7 @@ function setPick(matchId, playerIdx, side, value) {
   const picks = state.picks[matchId] = state.picks[matchId] || {};
   const pick = picks[playerIdx] = picks[playerIdx] || ["", ""];
   pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
-  stampEdit(playerIdx);
+  stampEdit(playerIdx, m ? `marcador ${m.home}–${m.away}` : "marcador");
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
