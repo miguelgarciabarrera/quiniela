@@ -668,17 +668,27 @@ function renderLeaderboard() {
   const ranked = state.players
     .map((name, i) => ({ name, idx: i, ...t[i] }))
     .sort((a, b) => b.pts - a.pts);
-  document.getElementById("leaderboard").innerHTML = ranked.map((p, i) => `
-    <div class="lb-card ${anyPoints && i === 0 ? "first" : ""} ${anyPoints && i === ranked.length - 1 ? "last" : ""}">
+  // ranking de competencia: empatados en puntos comparten lugar, banner y medalla
+  const leaderPts = ranked.length ? ranked[0].pts : 0;
+  const lastPts = ranked.length ? ranked[ranked.length - 1].pts : 0;
+  const rankOf = ranked.map((p, i) => 0);
+  ranked.forEach((p, i) => { rankOf[i] = (i > 0 && p.pts === ranked[i - 1].pts) ? rankOf[i - 1] : i; });
+  document.getElementById("leaderboard").innerHTML = ranked.map((p, i) => {
+    const r = rankOf[i];
+    const isFirst = anyPoints && p.pts === leaderPts;
+    const isLast = anyPoints && p.pts === lastPts && lastPts !== leaderPts;
+    return `
+    <div class="lb-card ${isFirst ? "first" : ""} ${isLast ? "last" : ""}">
       <div class="lb-top">
-        <span class="lb-rank ${anyPoints ? "r" + (i + 1) : "wait"}">${anyPoints ? (i + 1) : "—"}</span>
+        <span class="lb-rank ${anyPoints ? "r" + (r + 1) : "wait"}">${anyPoints ? (r + 1) : "—"}</span>
         <span class="lb-name">${esc(p.name)}</span>
         <span class="lb-pts">${p.pts}</span>
       </div>
-      <span class="lb-title">${anyPoints ? RANK_TITLES[i] : "Invicto (por ahora)"}</span>
-      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${anyPoints && i > 0 ? ` <span class="sep">·</span> a −${ranked[0].pts - p.pts} del trono` : ""}</span>
+      <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
+      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
       <span class="lb-detail">racha ${formLine(p.idx)}</span>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   renderStats(ranked, anyPoints);
 }
 
