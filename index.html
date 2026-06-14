@@ -946,7 +946,7 @@ function setPick(matchId, playerIdx, side, value) {
   pick[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   const wasEmpty = before[0] === "" && before[1] === "";
   const change = wasEmpty ? fmtScore(pick) : `${fmtScore(before)} → ${fmtScore(pick)}`;
-  stampEdit(playerIdx, m ? `marcador ${m.home} vs ${m.away}: ${change}` : "marcador");
+  stampEdit(playerIdx, m ? `${m.home} vs ${m.away}: ${change}` : change);
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
