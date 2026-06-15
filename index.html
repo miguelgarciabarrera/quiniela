@@ -1140,7 +1140,9 @@ async function pullCloud(initial) {
     if (!res.ok) throw new Error("HTTP " + res.status);
     const doc = await res.json();
     if (doc.state) {
-      if (doc.rev !== cloudRev) adoptCloudDoc(doc);
+      // sólo adoptar revisiones más nuevas: un GET con caché de borde puede traer
+      // brevemente una versión vieja y no queremos revertir un cambio recién guardado
+      if (doc.rev > cloudRev) adoptCloudDoc(doc);
       setSync("sincronizado");
     } else if (initial) {
       // quiniela vacía en la nube: el primer dispositivo en línea la siembra con lo suyo
@@ -1169,9 +1171,19 @@ setInterval(rotateTagline, 15000);
 document.getElementById("filterSel").addEventListener("change", renderMatches);
 renderAll();
 pullCloud(true);
-setInterval(() => pullCloud(false), 20000);
+// sólo sondear cuando la pestaña está visible: una pestaña en segundo plano ya no
+// gasta operaciones del Blob. Reanuda (con jalón inmediato) al volver a la pestaña.
+const POLL_MS = 30000;
+let pollTimer = setInterval(() => pullCloud(false), POLL_MS);
 setInterval(renderActivity, 60000);  // mantiene fresco el "hace X" sin esperar a otro cambio
-document.addEventListener("visibilitychange", () => { if (!document.hidden) pullCloud(false); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    clearInterval(pollTimer); pollTimer = null;
+  } else {
+    pullCloud(false);
+    if (!pollTimer) pollTimer = setInterval(() => pullCloud(false), POLL_MS);
+  }
+});
 </script>
 </body>
 </html>

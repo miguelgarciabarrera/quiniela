@@ -19,7 +19,10 @@ export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
       const doc = await readDoc();
-      res.setHeader("Cache-Control", "no-store");
+      // Cache at Vercel's edge so many client polls collapse into ~one blob read
+      // per window (cache hits never invoke this function or touch the blob).
+      // Up to ~30s stale is fine for a quiniela; writes bump rev and clients catch up.
+      res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60");
       return res.status(200).json(doc || { rev: 0, state: null, savedAt: null });
     }
 
@@ -42,14 +45,15 @@ export default async function handler(req, res) {
         allowOverwrite: true,
         contentType: "application/json",
       });
-      // history snapshots double as backups; pruned occasionally below
-      await put(`${HISTORY_PREFIX}rev-${String(doc.rev).padStart(6, "0")}.json`, body, {
-        access: "private",
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: "application/json",
-      });
-      if (doc.rev % 20 === 0) {
+      // history snapshots double as backups, but each one is an extra write op —
+      // snapshot every 10th rev instead of every save to stay under the Blob limits.
+      if (doc.rev % 10 === 0) {
+        await put(`${HISTORY_PREFIX}rev-${String(doc.rev).padStart(6, "0")}.json`, body, {
+          access: "private",
+          addRandomSuffix: false,
+          allowOverwrite: true,
+          contentType: "application/json",
+        });
         const { blobs } = await list({ prefix: HISTORY_PREFIX, limit: 1000 });
         const stale = blobs
           .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
