@@ -440,7 +440,7 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 // fechas cerradas: día completo congelado. Agrega fechas conforme avance el torneo.
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
-const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9", "m10"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía, Alemania-Curazao, Países Bajos-Japón
+const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía, Alemania-Curazao, Países Bajos-Japón, Costa de Marfil-Ecuador, Corea del Sur-Chequia
 function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
@@ -733,11 +733,17 @@ function renderStats(ranked, anyPoints) {
       .filter(s => s !== null);
     if (played.length && played.every(s => s === 0)) clownCount++;
   }
-  const sniper = ranked.slice().sort((a, b) => b.exact - a.exact)[0];
+  const maxExact = ranked.reduce((max, p) => Math.max(max, p.exact), 0);
+  const snipers = anyPoints && maxExact > 0 ? ranked.filter(p => p.exact === maxExact) : [];
+  const lastPts = anyPoints ? ranked[ranked.length - 1].pts : null;
+  const carnitasPayers = anyPoints ? ranked.filter(p => p.pts === lastPts) : [];
   const chips = [`<b>${judged.length}</b> partidos juzgados`];
-  if (anyPoints && sniper.exact > 0) chips.push(`🎯 Francotirador: <b>${esc(sniper.name)}</b> (${sniper.exact} exactos)`);
+  if (snipers.length === 1) chips.push(`🎯 Francotirador: <b>${esc(snipers[0].name)}</b> (${maxExact} exactos)`);
+  else if (snipers.length > 1) chips.push(`🎯 Francotiradores: <b>${snipers.map(p => esc(p.name)).join(", ")}</b> (${maxExact} exactos)`);
   if (clownCount) chips.push(`🤡 Payasadas grupales: <b>${clownCount}</b>`);
-  chips.push(`🌮 Carnitas: las paga <b>${anyPoints ? esc(ranked[ranked.length - 1].name) : "por definir"}</b>`);
+  if (anyPoints && carnitasPayers.length === 1) chips.push(`🌮 Carnitas: las paga <b>${esc(carnitasPayers[0].name)}</b>`);
+  else if (anyPoints && carnitasPayers.length > 1) chips.push(`🌮 Carnitas: las pagan <b>${carnitasPayers.map(p => esc(p.name)).join(" y ")}</b>`);
+  else chips.push(`🌮 Carnitas: las paga <b>por definir</b>`);
   document.getElementById("statsStrip").innerHTML = chips.map(c => `<span class="stat-chip">${c}</span>`).join("");
 }
 
