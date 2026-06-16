@@ -43,16 +43,15 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: linear-gradient(180deg, #141d1af2, #0e1614f2);
-    backdrop-filter: blur(8px);
+    background:
+      linear-gradient(180deg, #0b100ebb 0%, #0b100ef0 55%, #0b100eff 100%),
+      url('/group-toys2.png') center 20% / cover no-repeat;
+    backdrop-filter: blur(2px);
     border-bottom: 1px solid var(--border);
     box-shadow: 0 1px 0 #ffffff0a, 0 10px 30px #00000055;
     display: flex; align-items: stretch; overflow: hidden;
   }
   .header-content { flex: 1; min-width: 0; padding: 16px 24px; position: relative; }
-  .header-photo { width: clamp(180px, 24vw, 320px); flex-shrink: 0; position: relative; overflow: hidden; }
-  .header-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; opacity: .82; }
-  .header-photo::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #0e1614f5 0%, #0e161488 30%, transparent 60%); z-index: 1; pointer-events: none; }
   h1 {
     margin: 0 0 4px; font-family: var(--display); font-weight: 400;
     font-size: 56px; line-height: .92; letter-spacing: 1px;
@@ -342,26 +341,12 @@
     border-radius: 999px; padding: 5px 12px;
   }
 
-  /* banda-póster con el balón, arriba de todo (no sticky) */
-  .hero {
-    position: relative; width: 100%; line-height: 0;
-    height: clamp(170px, 23vw, 320px); overflow: hidden;
-    background: #0e1614;
-  }
-  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
-  .hero::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(180deg, transparent 58%, #0b100e 99%);
-  }
-
   /* teléfono: el header deja de ser sticky (se comía toda la pantalla),
      la tabla de líderes y los chips se deslizan en una sola fila */
   @media (max-width: 760px) {
     body { font-size: 15px; }
-    .hero { height: clamp(150px, 42vw, 220px); }
-    header { position: static; }
+    header { position: static; background-position: center 30%; }
     .header-content { padding: 12px 14px; }
-    .header-photo { display: none; }
     h1 { font-size: 38px; }
     .tagline { font-size: 13px; margin: 0 0 10px; }
     .sync-chip { position: static; display: inline-block; margin-bottom: 8px; font-size: 11px; padding: 4px 10px; }
@@ -395,10 +380,6 @@
 </head>
 <body>
 
-<div class="hero">
-  <img src="/trionda.jpg" alt="Balón oficial TRIONDA del Mundial 2026" onerror="this.closest('.hero').style.display='none'">
-</div>
-
 <header>
   <div class="header-content">
     <span class="sync-chip" id="syncStatus">conectando…</span>
@@ -407,9 +388,6 @@
     <div class="leaderboard" id="leaderboard"></div>
     <div class="stats-strip" id="statsStrip"></div>
     <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.</p>
-  </div>
-  <div class="header-photo">
-    <img src="/group-toys.png" alt="">
   </div>
 </header>
 
