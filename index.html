@@ -39,9 +39,9 @@
     font-family: "Space Grotesk", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
   }
-  /* hero: sized to exact image aspect ratio so cover fills it with zero cropping */
+  /* hero: 100vw so the scrollbar gap never creates a strip on the right */
   .hero {
-    position: relative; width: 100%; line-height: 0;
+    position: relative; width: 100vw; line-height: 0;
     aspect-ratio: 1944 / 809; overflow: hidden;
   }
   .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
