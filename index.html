@@ -47,8 +47,12 @@
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border);
     box-shadow: 0 1px 0 #ffffff0a, 0 10px 30px #00000055;
-    padding: 16px 24px;
+    display: flex; align-items: stretch; overflow: hidden;
   }
+  .header-content { flex: 1; min-width: 0; padding: 16px 24px; position: relative; }
+  .header-photo { width: clamp(180px, 24vw, 320px); flex-shrink: 0; position: relative; overflow: hidden; }
+  .header-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; opacity: .82; }
+  .header-photo::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #0e1614f5 0%, #0e161488 30%, transparent 60%); z-index: 1; pointer-events: none; }
   h1 {
     margin: 0 0 4px; font-family: var(--display); font-weight: 400;
     font-size: 56px; line-height: .92; letter-spacing: 1px;
@@ -355,7 +359,9 @@
   @media (max-width: 760px) {
     body { font-size: 15px; }
     .hero { height: clamp(150px, 42vw, 220px); }
-    header { position: static; padding: 12px 14px; }
+    header { position: static; }
+    .header-content { padding: 12px 14px; }
+    .header-photo { display: none; }
     h1 { font-size: 38px; }
     .tagline { font-size: 13px; margin: 0 0 10px; }
     .sync-chip { position: static; display: inline-block; margin-bottom: 8px; font-size: 11px; padding: 4px 10px; }
@@ -394,12 +400,17 @@
 </div>
 
 <header>
-  <span class="sync-chip" id="syncStatus">conectando…</span>
-  <h1><span class="ball">⚽</span> Quiniela <span class="gold">Mundial 2026</span></h1>
-  <p class="tagline" id="tagline"></p>
-  <div class="leaderboard" id="leaderboard"></div>
-  <div class="stats-strip" id="statsStrip"></div>
-  <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.</p>
+  <div class="header-content">
+    <span class="sync-chip" id="syncStatus">conectando…</span>
+    <h1><span class="ball">⚽</span> Quiniela <span class="gold">Mundial 2026</span></h1>
+    <p class="tagline" id="tagline"></p>
+    <div class="leaderboard" id="leaderboard"></div>
+    <div class="stats-strip" id="statsStrip"></div>
+    <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.</p>
+  </div>
+  <div class="header-photo">
+    <img src="/group-toys.png" alt="">
+  </div>
 </header>
 
 <main>
@@ -440,7 +451,7 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 // fechas cerradas: día completo congelado. Agrega fechas conforme avance el torneo.
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
-const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12"]);  // Catar-Suiza, Brasil-Marruecos, Haití-Escocia, Australia-Turquía, Alemania-Curazao, Países Bajos-Japón, Costa de Marfil-Ecuador, Corea del Sur-Chequia
+const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12", "m13", "m14", "m15"]);  // Catar-Suiza…España-Cabo Verde, Bélgica-Egipto, Arabia Saudita-Uruguay
 function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
