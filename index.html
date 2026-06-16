@@ -39,19 +39,38 @@
     font-family: "Space Grotesk", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 17px;
   }
+  /* hero: group photo full-width, no crop — image sets its own height */
+  .hero {
+    position: relative; width: 100%; line-height: 0;
+  }
+  .hero img { width: 100%; height: auto; display: block; }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, transparent 55%, var(--bg) 100%);
+  }
+
   header {
     position: sticky;
     top: 0;
     z-index: 10;
-    background:
-      linear-gradient(180deg, #0b100ebb 0%, #0b100ef0 55%, #0b100eff 100%),
-      url('/group-toys2.png') center 20% / cover no-repeat;
-    backdrop-filter: blur(2px);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 1px 0 #ffffff0a, 0 10px 30px #00000055;
-    display: flex; align-items: stretch; overflow: hidden;
+    /* transparent at top — hero is visible above */
+    background: linear-gradient(180deg, #141d1a44, #0e161466);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid transparent;
+    box-shadow: none;
+    transition: background .4s ease, border-color .35s ease, box-shadow .35s ease;
+    padding: 16px 24px;
+    position: sticky;
   }
-  .header-content { flex: 1; min-width: 0; padding: 16px 24px; position: relative; }
+  /* once scrolled past hero, header gets photo-as-background */
+  header.scrolled {
+    background:
+      linear-gradient(180deg, #0b100ecc 0%, #0b100ef2 55%, #0b100eff 100%),
+      url('/group-toys2.png') center 22% / cover no-repeat;
+    border-bottom-color: var(--border);
+    box-shadow: 0 1px 0 #ffffff0a, 0 10px 30px #00000055;
+  }
+  .header-content { padding: 0; position: relative; }
   h1 {
     margin: 0 0 4px; font-family: var(--display); font-weight: 400;
     font-size: 56px; line-height: .92; letter-spacing: 1px;
@@ -345,7 +364,8 @@
      la tabla de líderes y los chips se deslizan en una sola fila */
   @media (max-width: 760px) {
     body { font-size: 15px; }
-    header { position: static; background-position: center 30%; }
+    .hero img { width: 100%; }
+    header { position: static; background: linear-gradient(180deg, #141d1af2, #0e1614f2) !important; border-bottom-color: var(--border) !important; }
     .header-content { padding: 12px 14px; }
     h1 { font-size: 38px; }
     .tagline { font-size: 13px; margin: 0 0 10px; }
@@ -379,6 +399,10 @@
 </style>
 </head>
 <body>
+
+<div class="hero">
+  <img src="/group-toys2.png" alt="">
+</div>
 
 <header>
   <div class="header-content">
@@ -1179,6 +1203,18 @@ document.addEventListener("visibilitychange", () => {
     if (!pollTimer) pollTimer = setInterval(() => pullCloud(false), POLL_MS);
   }
 });
+
+// Scroll-aware header: transparent when hero is in view, photo-bg once scrolled past it
+(function () {
+  const hdr = document.querySelector("header");
+  const hero = document.querySelector(".hero");
+  function onScroll() {
+    const threshold = hero ? hero.offsetHeight - hdr.offsetHeight / 2 : 60;
+    hdr.classList.toggle("scrolled", window.scrollY > threshold);
+  }
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+})();
 </script>
 </body>
 </html>
