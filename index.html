@@ -66,7 +66,7 @@
   header.scrolled {
     background:
       linear-gradient(180deg, #0b100ecc 0%, #0b100ef2 55%, #0b100eff 100%),
-      url('/group-toys2.png') center 22% / cover no-repeat;
+      url('/group-toys3.png') center 22% / cover no-repeat;
     border-bottom-color: var(--border);
     box-shadow: 0 1px 0 #ffffff0a, 0 10px 30px #00000055;
   }
@@ -414,7 +414,7 @@
 <body>
 
 <div class="hero">
-  <img src="/group-toys2.png" alt="">
+  <img src="/group-toys3.png" alt="">
 </div>
 
 <header>
@@ -466,9 +466,9 @@ const STORAGE_KEY = "quiniela-wc2026";
 const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 
 // fechas cerradas: día completo congelado. Agrega fechas conforme avance el torneo.
-const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun"]);
+const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14 Jun", "Lun 15 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
-const LOCKED_MATCHES = new Set(["m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12", "m13", "m14", "m15"]);  // Catar-Suiza…España-Cabo Verde, Bélgica-Egipto, Arabia Saudita-Uruguay
+const LOCKED_MATCHES = new Set([]);  // días completos cubiertos por LOCKED_DATES
 function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
