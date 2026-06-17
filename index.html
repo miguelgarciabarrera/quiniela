@@ -909,6 +909,7 @@ function renderMatches() {
       const result = state.results[m.id];
       const locked = isLocked(m);
       const dis = locked ? "disabled" : "";
+      const resultDis = (dateLocked || LOCKED_MATCHES.has(m.id)) ? "disabled" : "";
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       if (result && result[0] !== "" && result[1] !== "" && +result[0] !== +result[1]) {
         if (+result[0] > +result[1]) homeHtml = `<span class="winner">${homeHtml} 🏆</span>`;
@@ -941,9 +942,9 @@ function renderMatches() {
       const r = result || ["", ""];
       html += `<td class="result-cell">
         <span class="score-pair">
-          <input type="number" min="0" max="99" value="${r[0]}" ${dis} onchange="setResult('${m.id}',0,this.value)">
+          <input type="number" min="0" max="99" value="${r[0]}" ${resultDis} onchange="setResult('${m.id}',0,this.value)">
           <span class="dash">–</span>
-          <input type="number" min="0" max="99" value="${r[1]}" ${dis} onchange="setResult('${m.id}',1,this.value)">
+          <input type="number" min="0" max="99" value="${r[1]}" ${resultDis} onchange="setResult('${m.id}',1,this.value)">
         </span>
       </td></tr>`;
     }
@@ -1077,7 +1078,7 @@ function setPick(matchId, playerIdx, side, value) {
 
 function setResult(matchId, side, value) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && isLocked(lm)) { renderMatches(); return; }  // cerrado
+  if (lm && (LOCKED_DATES.has(lm.date) || LOCKED_MATCHES.has(lm.id))) { renderMatches(); return; }
   const r = state.results[matchId] = state.results[matchId] || ["", ""];
   r[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   if (r[0] === "" && r[1] === "") delete state.results[matchId];
