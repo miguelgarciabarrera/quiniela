@@ -472,7 +472,64 @@ const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14
 const LOCKED_MATCHES = new Set(["m21", "m22"]);  // Portugal-RD del Congo, Inglaterra-Croacia
 // picks anulados por el tribunal: { matchId: Set de índices de jugador }
 const VETOED_PICKS = { "m22": new Set([0]) }; // Emilio — editó post-pitido, grupo decidió anular
-function isLocked(m) { return LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id); }
+// horarios de inicio en UTC (fuente: ESPN). isLocked() cierra el partido automáticamente al pitido.
+const KICKOFFS = {
+  m23: Date.UTC(2026,5,17,23, 0), // Ghana-Panamá          7pm ET
+  m24: Date.UTC(2026,5,18, 2, 0), // Uzbekistán-Colombia   10pm ET
+  m25: Date.UTC(2026,5,18,16, 0), // Chequia-Sudáfrica     12pm ET
+  m26: Date.UTC(2026,5,18,19, 0), // Suiza-Bosnia          3pm ET
+  m27: Date.UTC(2026,5,18,22, 0), // Canadá-Catar          6pm ET
+  m28: Date.UTC(2026,5,19, 1, 0), // México-Corea del Sur  9pm ET
+  m29: Date.UTC(2026,5,19,22, 0), // Escocia-Marruecos     6pm ET
+  m30: Date.UTC(2026,5,19,19, 0), // EE.UU.-Australia      3pm ET
+  m31: Date.UTC(2026,5,20, 0,30), // Brasil-Haití          8:30pm ET
+  m32: Date.UTC(2026,5,20, 3, 0), // Turquía-Paraguay      11pm ET
+  m33: Date.UTC(2026,5,20,17, 0), // Países Bajos-Suecia   1pm ET
+  m34: Date.UTC(2026,5,20,20, 0), // Alemania-C.Marfil     4pm ET
+  m35: Date.UTC(2026,5,21, 0, 0), // Ecuador-Curazao       8pm ET
+  m36: Date.UTC(2026,5,21, 4, 0), // Túnez-Japón           12am ET
+  m37: Date.UTC(2026,5,21,16, 0), // España-Arabia S.      12pm ET
+  m38: Date.UTC(2026,5,21,19, 0), // Bélgica-Irán          3pm ET
+  m39: Date.UTC(2026,5,21,22, 0), // Uruguay-Cabo Verde    6pm ET
+  m40: Date.UTC(2026,5,22, 1, 0), // N.Zelanda-Egipto      9pm ET
+  m41: Date.UTC(2026,5,22,17, 0), // Argentina-Austria     1pm ET
+  m42: Date.UTC(2026,5,22,21, 0), // Francia-Irak          5pm ET
+  m43: Date.UTC(2026,5,23, 0, 0), // Noruega-Senegal       8pm ET
+  m44: Date.UTC(2026,5,23, 6, 0), // Jordania-Argelia      11pm PT
+  m45: Date.UTC(2026,5,23,18, 0), // Portugal-Uzbekistán   1pm CT
+  m46: Date.UTC(2026,5,23,20, 0), // Inglaterra-Ghana      4pm ET
+  m47: Date.UTC(2026,5,23,23, 0), // Panamá-Croacia        7pm ET
+  m48: Date.UTC(2026,5,24, 5, 0), // Colombia-RD Congo     10pm PT
+  m49: Date.UTC(2026,5,24,22, 0), // Suiza-Canadá          3pm PT / 6pm ET
+  m50: Date.UTC(2026,5,24,22, 0), // Bosnia-Catar          3pm PT / 6pm ET
+  m51: Date.UTC(2026,5,24,22, 0), // Escocia-Brasil        6pm ET
+  m52: Date.UTC(2026,5,24,22, 0), // Marruecos-Haití       6pm ET
+  m53: Date.UTC(2026,5,25, 2, 0), // Chequia-México        9pm CT
+  m54: Date.UTC(2026,5,25, 2, 0), // Sudáfrica-Corea S.    9pm CT
+  m55: Date.UTC(2026,5,25,20, 0), // Ecuador-Alemania      4pm ET
+  m56: Date.UTC(2026,5,25,20, 0), // Curazao-C.Marfil      4pm ET
+  m57: Date.UTC(2026,5,26, 2, 0), // Japón-Suecia          7pm PT
+  m58: Date.UTC(2026,5,26, 0, 0), // Túnez-Países Bajos    7pm CT
+  m59: Date.UTC(2026,5,26, 5, 0), // Turquía-EE.UU.        10pm PT
+  m60: Date.UTC(2026,5,26, 5, 0), // Paraguay-Australia    10pm PT
+  m61: Date.UTC(2026,5,26,19, 0), // Noruega-Francia       3pm ET
+  m62: Date.UTC(2026,5,26,19, 0), // Senegal-Irak          3pm ET
+  m63: Date.UTC(2026,5,27, 1, 0), // Cabo Verde-Arabia S.  8pm CT
+  m64: Date.UTC(2026,5,27, 1, 0), // Uruguay-España        8pm CT
+  m65: Date.UTC(2026,5,27, 6, 0), // Egipto-Irán           11pm PT
+  m66: Date.UTC(2026,5,27, 6, 0), // N.Zelanda-Bélgica     11pm PT
+  m67: Date.UTC(2026,5,27,21, 0), // Panamá-Inglaterra     5pm ET
+  m68: Date.UTC(2026,5,27,21, 0), // Croacia-Ghana         5pm ET
+  m69: Date.UTC(2026,5,27,23,30), // Colombia-Portugal     7:30pm ET
+  m70: Date.UTC(2026,5,27,23,30), // RD Congo-Uzbekistán   7:30pm ET
+  m71: Date.UTC(2026,5,28, 3, 0), // Argelia-Austria       10pm CT
+  m72: Date.UTC(2026,5,28, 5, 0), // Jordania-Argentina    10pm PT
+};
+function isLocked(m) {
+  if (LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id)) return true;
+  const ko = KICKOFFS[m.id];
+  return ko !== undefined && Date.now() >= ko;
+}
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
 const DECEPCION_TEAMS = ["Argentina", "España", "Francia", "Inglaterra", "Portugal", "Brasil", "Países Bajos", "Alemania"];
@@ -1226,6 +1283,13 @@ document.addEventListener("visibilitychange", () => {
     if (!pollTimer) pollTimer = setInterval(() => pullCloud(false), POLL_MS);
   }
 });
+
+// Re-renderiza automáticamente cuando arranca el siguiente partido para cerrar sus inputs
+(function scheduleKickoffRedraw() {
+  const now = Date.now();
+  const next = Object.values(KICKOFFS).filter(t => t > now).sort((a, b) => a - b)[0];
+  if (next) setTimeout(() => { renderMatches(); scheduleKickoffRedraw(); }, next - now + 1500);
+})();
 
 // Scroll-aware header: transparent when hero is in view, photo-bg once scrolled past it
 (function () {
