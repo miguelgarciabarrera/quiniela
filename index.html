@@ -277,6 +277,13 @@
     letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
     border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
   }
+  .kickoff-cd {
+    display: block; font-size: 11px; color: var(--muted);
+    margin-top: 3px; font-weight: 500; letter-spacing: .2px;
+    transition: color .4s;
+  }
+  .kickoff-cd.soon   { color: var(--yellow-b); }
+  .kickoff-cd.urgent { color: var(--hot); }
   .score-pair input:disabled { opacity: .5; cursor: not-allowed; border-style: dashed; }
 
   .score-pair { display: inline-flex; align-items: center; gap: 4px; }
@@ -912,6 +919,7 @@ function renderMatches() {
         ${!dateLocked && locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
         <span class="m-teams">${homeHtml} <span class="dash">vs</span> ${awayHtml}</span>
+        ${!locked && KICKOFFS[m.id] ? `<span class="kickoff-cd" data-ko="${KICKOFFS[m.id]}"></span>` : ""}
       </td>`;
       state.players.forEach((_, i) => {
         const vetoed = !!(VETOED_PICKS[m.id]?.has(i));
@@ -950,6 +958,7 @@ function renderAll() {
   renderPicks();
   renderMatches();
   renderActivity();
+  updateCountdowns();
 }
 
 // tiempo relativo en español, p.ej. "hace 2 h", "ayer 21:30", "13 jun 18:04"
@@ -1283,6 +1292,26 @@ document.addEventListener("visibilitychange", () => {
     if (!pollTimer) pollTimer = setInterval(() => pullCloud(false), POLL_MS);
   }
 });
+
+function updateCountdowns() {
+  const now = Date.now();
+  document.querySelectorAll(".kickoff-cd[data-ko]").forEach(el => {
+    const diff = +el.dataset.ko - now;
+    if (diff <= 0) { el.textContent = ""; return; }
+    const totalMin = Math.floor(diff / 60000);
+    const h = Math.floor(totalMin / 60);
+    const min = totalMin % 60;
+    let text, cls;
+    if (h >= 48)        { text = `⏱ cierra en ${Math.floor(h/24)}d ${h%24}h`; cls = ""; }
+    else if (h >= 2)    { text = `⏱ cierra en ${h}h ${min}min`;               cls = ""; }
+    else if (h >= 1)    { text = `⏱ cierra en ${h}h ${min}min`;               cls = "soon"; }
+    else if (totalMin)  { text = `⏱ cierra en ${totalMin}min`;                cls = "urgent"; }
+    else                { text = `⏱ cerrando…`;                                cls = "urgent"; }
+    el.textContent = text;
+    el.className = "kickoff-cd" + (cls ? " " + cls : "");
+  });
+}
+setInterval(updateCountdowns, 30000);
 
 // Re-renderiza automáticamente cuando arranca el siguiente partido para cerrar sus inputs
 (function scheduleKickoffRedraw() {
