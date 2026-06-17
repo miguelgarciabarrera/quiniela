@@ -907,7 +907,7 @@ function renderMatches() {
       <tr><th>Partido</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ La Realidad</th></tr>`;
     for (const m of matches) {
       const result = state.results[m.id];
-      const locked = dateLocked || LOCKED_MATCHES.has(m.id);
+      const locked = isLocked(m);
       const dis = locked ? "disabled" : "";
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       if (result && result[0] !== "" && result[1] !== "" && +result[0] !== +result[1]) {
