@@ -931,7 +931,7 @@ function renderPicks() {
         <select onchange="setSub(${i}, this.value)">${teamOptions(sub)}</select>
       </label>
       <div class="pick-flag-line">${sub ? `${flag(sub)} <span class="who">llega a la final pero no alcanza</span>` : `<span class="who">sin subcampeón elegido</span>`}</div>
-      <label class="balon">Balón de Oro
+      <label class="balon">Balón de Oro (MVP)
         <select onchange="setBalon(${i}, this.value)">${balonOptions(balon)}</select>
       </label>
       <div class="pick-flag-line">${balon ? `${flag(BALON_TEAM[balon])} <span class="who">mejor jugador del torneo</span>` : `<span class="who">sin MVP elegido</span>`}</div>
@@ -939,7 +939,7 @@ function renderPicks() {
         <select onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
       </label>
       <div class="pick-flag-line">${horse ? `${flag(horse)} <span class="who">se cuela a semifinales</span>` : `<span class="who">aún sin caballo negro</span>`}</div>
-      <label class="boot">Bota de oro
+      <label class="boot">Bota de Oro (goleador)
         <select onchange="setBoot(${i}, this.value)">${bootOptions(boot)}</select>
       </label>
       <div class="pick-flag-line">${boot ? `${flag(BOOT_TEAM[boot])} <span class="who">se lleva el botín de goles</span>` : `<span class="who">aún sin goleador</span>`}</div>
