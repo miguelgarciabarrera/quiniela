@@ -191,9 +191,12 @@
     color: var(--muted); display: flex; flex-direction: column; gap: 4px;
   }
   .pick-card label.champ { color: var(--gold); }
+  .pick-card label.sub   { color: #aac4d0; }
+  .pick-card label.balon { color: #ff9f43; }
   .pick-card label.horse { color: var(--hot); }
-  .pick-card label.boot { color: var(--accent); }
-  .pick-card label.flop { color: var(--red-b); }
+  .pick-card label.boot  { color: var(--accent); }
+  .pick-card label.glove { color: #4dd9c0; }
+  .pick-card label.flop  { color: var(--red-b); }
   .pick-card select {
     background: var(--panel2); color: var(--text);
     border: 1px solid var(--border); border-radius: 7px;
@@ -560,6 +563,41 @@ const BOOT_PLAYERS = [
 ];
 const BOOT_TEAM = Object.fromEntries(BOOT_PLAYERS.map(p => [p.n, p.t]));
 
+const BALON_PLAYERS = [
+  { n: "Lionel Messi",       t: "Argentina" },
+  { n: "Kylian Mbappé",      t: "Francia" },
+  { n: "Erling Haaland",     t: "Noruega" },
+  { n: "Lamine Yamal",       t: "España" },
+  { n: "Rodri",              t: "España" },
+  { n: "Jude Bellingham",    t: "Inglaterra" },
+  { n: "Vinícius Júnior",    t: "Brasil" },
+  { n: "Pedri",              t: "España" },
+  { n: "Phil Foden",         t: "Inglaterra" },
+  { n: "Kevin De Bruyne",    t: "Bélgica" },
+  { n: "Florian Wirtz",      t: "Alemania" },
+  { n: "Harry Kane",         t: "Inglaterra" },
+  { n: "Bukayo Saka",        t: "Inglaterra" },
+  { n: "Federico Valverde",  t: "Uruguay" },
+  { n: "Raphinha",           t: "Brasil" },
+  { n: "Luis Díaz",          t: "Colombia" },
+];
+const BALON_TEAM = Object.fromEntries(BALON_PLAYERS.map(p => [p.n, p.t]));
+
+const GLOVE_PLAYERS = [
+  { n: "Emiliano Martínez",  t: "Argentina" },
+  { n: "Thibaut Courtois",   t: "Bélgica" },
+  { n: "Manuel Neuer",       t: "Alemania" },
+  { n: "Alisson Becker",     t: "Brasil" },
+  { n: "Yann Sommer",        t: "Suiza" },
+  { n: "Jordan Pickford",    t: "Inglaterra" },
+  { n: "Mike Maignan",       t: "Francia" },
+  { n: "Unai Simón",         t: "España" },
+  { n: "Diogo Costa",        t: "Portugal" },
+  { n: "Yassine Bounou",     t: "Marruecos" },
+  { n: "Guillermo Ochoa",    t: "México" },
+];
+const GLOVE_TEAM = Object.fromEntries(GLOVE_PLAYERS.map(p => [p.n, p.t]));
+
 const TAGLINES = [
   "Donde las amistades vienen a morir, marcador por marcador.",
   "El último lugar paga las carnitas. Reglas de la casa. 🌮",
@@ -611,7 +649,7 @@ const TEAM_MIGRATE = {
 };
 
 function migrateTeams(s) {
-  for (const k of ["champs", "horses", "flops"]) {
+  for (const k of ["champs", "subs", "horses", "flops"]) {
     for (const i in s[k]) if (TEAM_MIGRATE[s[k][i]]) s[k][i] = TEAM_MIGRATE[s[k][i]];
   }
   for (const m of s.extraMatches || []) {
@@ -720,8 +758,11 @@ function defaultState() {
     picks: {},                 // picks[matchId][playerIdx] = [local, visitante]
     results: {},               // results[matchId] = [local, visitante]
     champs: {},                // champs[playerIdx] = equipo
-    horses: {},                // horses[playerIdx] = equipo
+    subs: {},                  // subs[playerIdx] = equipo subcampeón
+    balons: {},                // balons[playerIdx] = jugador balón de oro
+    horses: {},                // horses[playerIdx] = equipo caballo negro
     boots: {},                 // boots[playerIdx] = nombre del goleador (bota de oro)
+    gloves: {},                // gloves[playerIdx] = portero guante de oro
     flops: {},                 // flops[playerIdx] = equipo decepción
     lastEdit: {},              // lastEdit[playerIdx] = timestamp (ms) del último cambio de sus pronósticos
   };
@@ -852,6 +893,14 @@ function bootOptions(selected) {
   return `<option value="">— elige un goleador —</option>` + BOOT_PLAYERS.map(p =>
     `<option value="${esc(p.n)}" ${p.n === selected ? "selected" : ""}>${esc(p.n)} (${esc(p.t)})</option>`).join("");
 }
+function balonOptions(selected) {
+  return `<option value="">— elige un jugador —</option>` + BALON_PLAYERS.map(p =>
+    `<option value="${esc(p.n)}" ${p.n === selected ? "selected" : ""}>${esc(p.n)} (${esc(p.t)})</option>`).join("");
+}
+function gloveOptions(selected) {
+  return `<option value="">— elige un portero —</option>` + GLOVE_PLAYERS.map(p =>
+    `<option value="${esc(p.n)}" ${p.n === selected ? "selected" : ""}>${esc(p.n)} (${esc(p.t)})</option>`).join("");
+}
 
 function decepcionOptions(selected) {
   return `<option value="">— elige un equipo —</option>` + DECEPCION_TEAMS.map(t =>
@@ -861,10 +910,14 @@ function decepcionOptions(selected) {
 function renderPicks() {
   document.getElementById("pickGrid").innerHTML = state.players.map((name, i) => {
     const champ = state.champs[i] || "";
+    const sub   = state.subs[i]   || "";
+    const balon = state.balons[i] || "";
     const horse = state.horses[i] || "";
-    const boot = state.boots[i] || "";
-    const flop = state.flops[i] || "";
-    const clash = champ && champ === horse;
+    const boot  = state.boots[i]  || "";
+    const glove = state.gloves[i] || "";
+    const flop  = state.flops[i]  || "";
+    const clash    = champ && champ === horse;
+    const clashSub = sub   && sub   === champ;
     return `
     <div class="pick-card">
       <input class="pname" value="${esc(name)}" onchange="renamePlayer(${i}, this.value)">
@@ -872,6 +925,14 @@ function renderPicks() {
         <select onchange="setChamp(${i}, this.value)">${teamOptions(champ)}</select>
       </label>
       <div class="pick-flag-line">${champ ? `${flag(champ)} <span class="who">la levanta, dice ${esc(name)}</span>` : `<span class="who">sin campeón elegido</span>`}</div>
+      <label class="sub">Subcampeón
+        <select onchange="setSub(${i}, this.value)">${teamOptions(sub)}</select>
+      </label>
+      <div class="pick-flag-line">${sub ? `${flag(sub)} <span class="who">llega a la final pero no alcanza</span>` : `<span class="who">sin subcampeón elegido</span>`}</div>
+      <label class="balon">Balón de Oro
+        <select onchange="setBalon(${i}, this.value)">${balonOptions(balon)}</select>
+      </label>
+      <div class="pick-flag-line">${balon ? `${flag(BALON_TEAM[balon])} <span class="who">mejor jugador del torneo</span>` : `<span class="who">sin MVP elegido</span>`}</div>
       <label class="horse">Caballo negro
         <select onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
       </label>
@@ -880,11 +941,16 @@ function renderPicks() {
         <select onchange="setBoot(${i}, this.value)">${bootOptions(boot)}</select>
       </label>
       <div class="pick-flag-line">${boot ? `${flag(BOOT_TEAM[boot])} <span class="who">se lleva el botín de goles</span>` : `<span class="who">aún sin goleador</span>`}</div>
+      <label class="glove">Guante de Oro
+        <select onchange="setGlove(${i}, this.value)">${gloveOptions(glove)}</select>
+      </label>
+      <div class="pick-flag-line">${glove ? `${flag(GLOVE_TEAM[glove])} <span class="who">el muro bajo los tres palos</span>` : `<span class="who">sin portero elegido</span>`}</div>
       <label class="flop">La decepción
         <select onchange="setFlop(${i}, this.value)">${decepcionOptions(flop)}</select>
       </label>
       <div class="pick-flag-line">${flop ? `${flag(flop)} <span class="who">promete y decepciona</span>` : `<span class="who">aún sin decepción</span>`}</div>
-      ${clash ? `<div class="pick-warn">Tu caballo negro no puede ser también tu campeón. Elige un underdog de verdad.</div>` : ""}
+      ${clash    ? `<div class="pick-warn">Tu caballo negro no puede ser también tu campeón. Elige un underdog de verdad.</div>` : ""}
+      ${clashSub ? `<div class="pick-warn">Tu subcampeón no puede ser el mismo que tu campeón.</div>` : ""}
     </div>`;
   }).join("");
 }
@@ -1054,6 +1120,21 @@ function setBoot(i, player) {
 function setFlop(i, team) {
   state.flops[i] = team;
   stampEdit(i, "decepción: " + (team || "(ninguno)"));
+  save(); renderPicks(); renderActivity();
+}
+function setSub(i, team) {
+  state.subs[i] = team;
+  stampEdit(i, "subcampeón: " + (team || "(ninguno)"));
+  save(); renderPicks(); renderActivity();
+}
+function setBalon(i, player) {
+  state.balons[i] = player;
+  stampEdit(i, "balón de oro: " + (player || "(ninguno)"));
+  save(); renderPicks(); renderActivity();
+}
+function setGlove(i, player) {
+  state.gloves[i] = player;
+  stampEdit(i, "guante de oro: " + (player || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
