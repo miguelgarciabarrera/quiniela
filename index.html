@@ -852,7 +852,7 @@ function renderLeaderboard() {
     <div class="lb-card ${isFirst ? "first" : ""} ${isLast ? "last" : ""}">
       <div class="lb-top">
         <span class="lb-rank ${anyPoints ? "r" + (r + 1) : "wait"}">${anyPoints ? (r + 1) : "—"}</span>
-        <span class="lb-name">${esc(p.name)}${Object.values(VETOED_PICKS).some(s => s.has(p.idx)) ? " 🟨" : ""}</span>
+        <span class="lb-name">${esc(p.name)}</span>
         <span class="lb-pts">${p.pts}</span>
       </div>
       <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
