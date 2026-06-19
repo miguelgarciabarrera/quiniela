@@ -440,9 +440,9 @@
 </header>
 
 <main>
-  <details class="section-collapse" open>
+  <details class="section-collapse">
     <summary>Las Profecías <span style="font-size:0.52em;background:var(--hot);color:#fff;padding:4px 12px;border-radius:20px;vertical-align:middle;font-weight:500;letter-spacing:1px;text-transform:uppercase;">15 pts c/u</span></summary>
-    <p class="section-sub"><span style="font-size:2.2em;font-weight:500;color:var(--gold);line-height:1;">15 puntos</span> por cada acierto — con <strong>3</strong> ya volteas la tabla, con <strong>4</strong> te llevas el trofeo. ¿Quién levanta la copa? ¿Quién es el caballo negro? Queda por escrito.</p>
+    <p class="section-sub"><span style="font-size:2.2em;font-weight:500;color:var(--gold);line-height:1;">15 puntos</span> por cada acierto — con <strong>3</strong> ya volteas la tabla, con <strong>4</strong> te llevas el trofeo. ¿Quién levanta la copa? ¿Quién es el caballo negro? Queda por escrito.<br><br>🚢 <em>El barco ya zarpó. Puedes revisar tus elecciones y sufrir en silencio, pero ya no puedes cambiar nada. Lo que dijiste, dijiste.</em></p>
     <div class="pick-grid" id="pickGrid"></div>
   </details>
 
@@ -480,6 +480,7 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14 Jun", "Lun 15 Jun", "Mar 16 Jun", "Mié 17 Jun", "Jue 18 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
 const LOCKED_MATCHES = new Set(["m21", "m22"]);  // Portugal-RD del Congo, Inglaterra-Croacia
+const PROFECIAS_LOCKED = true; // ventana cerrada — las profecías ya no se pueden editar
 // picks anulados por el tribunal: { matchId: Set de índices de jugador }
 const VETOED_PICKS = { "m22": new Set([0]) }; // Emilio — editó post-pitido, grupo decidió anular
 // horarios de inicio en UTC (fuente: ESPN). isLocked() cierra el partido automáticamente al pitido.
@@ -920,35 +921,36 @@ function renderPicks() {
     const flop  = state.flops[i]  || "";
     const clash    = champ && champ === horse;
     const clashSub = sub   && sub   === champ;
+    const pdis = PROFECIAS_LOCKED ? "disabled" : "";
     return `
     <div class="pick-card">
       <input class="pname" value="${esc(name)}" onchange="renamePlayer(${i}, this.value)">
       <label class="champ">Campeón del mundo
-        <select onchange="setChamp(${i}, this.value)">${teamOptions(champ)}</select>
+        <select ${pdis} onchange="setChamp(${i}, this.value)">${teamOptions(champ)}</select>
       </label>
       <div class="pick-flag-line">${champ ? `${flag(champ)} <span class="who">la levanta, dice ${esc(name)}</span>` : `<span class="who">sin campeón elegido</span>`}</div>
       <label class="sub">Subcampeón
-        <select onchange="setSub(${i}, this.value)">${teamOptions(sub)}</select>
+        <select ${pdis} onchange="setSub(${i}, this.value)">${teamOptions(sub)}</select>
       </label>
       <div class="pick-flag-line">${sub ? `${flag(sub)} <span class="who">llega a la final pero no alcanza</span>` : `<span class="who">sin subcampeón elegido</span>`}</div>
       <label class="balon">Balón de Oro (MVP)
-        <select onchange="setBalon(${i}, this.value)">${balonOptions(balon)}</select>
+        <select ${pdis} onchange="setBalon(${i}, this.value)">${balonOptions(balon)}</select>
       </label>
       <div class="pick-flag-line">${balon ? `${flag(BALON_TEAM[balon])} <span class="who">mejor jugador del torneo</span>` : `<span class="who">sin MVP elegido</span>`}</div>
       <label class="horse">Caballo negro
-        <select onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
+        <select ${pdis} onchange="setHorse(${i}, this.value)">${teamOptions(horse)}</select>
       </label>
       <div class="pick-flag-line">${horse ? `${flag(horse)} <span class="who">se cuela a semifinales</span>` : `<span class="who">aún sin caballo negro</span>`}</div>
       <label class="boot">Bota de Oro (goleador)
-        <select onchange="setBoot(${i}, this.value)">${bootOptions(boot)}</select>
+        <select ${pdis} onchange="setBoot(${i}, this.value)">${bootOptions(boot)}</select>
       </label>
       <div class="pick-flag-line">${boot ? `${flag(BOOT_TEAM[boot])} <span class="who">se lleva el botín de goles</span>` : `<span class="who">aún sin goleador</span>`}</div>
       <label class="glove">Guante de Oro
-        <select onchange="setGlove(${i}, this.value)">${gloveOptions(glove)}</select>
+        <select ${pdis} onchange="setGlove(${i}, this.value)">${gloveOptions(glove)}</select>
       </label>
       <div class="pick-flag-line">${glove ? `${flag(GLOVE_TEAM[glove])} <span class="who">el muro bajo los tres palos</span>` : `<span class="who">sin portero elegido</span>`}</div>
       <label class="flop">La decepción
-        <select onchange="setFlop(${i}, this.value)">${decepcionOptions(flop)}</select>
+        <select ${pdis} onchange="setFlop(${i}, this.value)">${decepcionOptions(flop)}</select>
       </label>
       <div class="pick-flag-line">${flop ? `${flag(flop)} <span class="who">promete y decepciona</span>` : `<span class="who">aún sin decepción</span>`}</div>
       ${clash    ? `<div class="pick-warn">Tu caballo negro no puede ser también tu campeón. Elige un underdog de verdad.</div>` : ""}
@@ -1102,39 +1104,46 @@ function stampEdit(i, what) {
 }
 
 function setChamp(i, team) {
+  if (PROFECIAS_LOCKED) return;
   state.champs[i] = team;
   stampEdit(i, "campeón: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
 function setHorse(i, team) {
+  if (PROFECIAS_LOCKED) return;
   state.horses[i] = team;
   stampEdit(i, "caballo negro: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
 function setBoot(i, player) {
+  if (PROFECIAS_LOCKED) return;
   state.boots[i] = player;
   stampEdit(i, "bota de oro: " + (player || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 
 function setFlop(i, team) {
+  if (PROFECIAS_LOCKED) return;
   state.flops[i] = team;
   stampEdit(i, "decepción: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 function setSub(i, team) {
+  if (PROFECIAS_LOCKED) return;
   state.subs[i] = team;
   stampEdit(i, "subcampeón: " + (team || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 function setBalon(i, player) {
+  if (PROFECIAS_LOCKED) return;
   state.balons[i] = player;
   stampEdit(i, "balón de oro: " + (player || "(ninguno)"));
   save(); renderPicks(); renderActivity();
 }
 function setGlove(i, player) {
+  if (PROFECIAS_LOCKED) return;
   state.gloves[i] = player;
   stampEdit(i, "guante de oro: " + (player || "(ninguno)"));
   save(); renderPicks(); renderActivity();
