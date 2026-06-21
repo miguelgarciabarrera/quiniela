@@ -480,6 +480,7 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14 Jun", "Lun 15 Jun", "Mar 16 Jun", "Mié 17 Jun", "Jue 18 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
 const LOCKED_MATCHES = new Set(["m21", "m22", "m29", "m30", "m31", "m33", "m34", "m35"]);
+const LOCKED_RESULTS = new Set(["m29", "m30", "m31", "m32", "m33", "m34", "m35"]); // La Realidad cerrada
 const PROFECIAS_LOCKED = true; // ventana cerrada — las profecías ya no se pueden editar
 // picks anulados por el tribunal: { matchId: Set de índices de jugador }
 const VETOED_PICKS = { "m22": new Set([0]) }; // Emilio — editó post-pitido, grupo decidió anular
@@ -979,7 +980,7 @@ function renderMatches() {
       const result = state.results[m.id];
       const locked = isLocked(m);
       const dis = locked ? "disabled" : "";
-      const resultDis = dateLocked ? "disabled" : "";
+      const resultDis = (dateLocked || LOCKED_RESULTS.has(m.id)) ? "disabled" : "";
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       if (result && result[0] !== "" && result[1] !== "" && +result[0] !== +result[1]) {
         if (+result[0] > +result[1]) homeHtml = `<span class="winner">${homeHtml} 🏆</span>`;
@@ -1170,7 +1171,7 @@ function setPick(matchId, playerIdx, side, value) {
 
 function setResult(matchId, side, value) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && LOCKED_DATES.has(lm.date)) { renderMatches(); return; }
+  if (lm && (LOCKED_DATES.has(lm.date) || LOCKED_RESULTS.has(lm.id))) { renderMatches(); return; }
   const r = state.results[matchId] = state.results[matchId] || ["", ""];
   r[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   if (r[0] === "" && r[1] === "") delete state.results[matchId];
