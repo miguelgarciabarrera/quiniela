@@ -151,6 +151,8 @@
   .clown-chip[open] { border-radius: 14px; }
   .clown-list { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
   .clown-game { font-size: 13px; color: var(--muted); }
+  .sniper-name { font-size: 12px; font-weight: 700; color: var(--text); margin-top: 6px; }
+  .sniper-name:first-child { margin-top: 0; }
   .rules { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
   .rules b { font-weight: 700; }
 
@@ -909,13 +911,23 @@ function renderStats(ranked, anyPoints) {
   const lastPts = anyPoints ? ranked[ranked.length - 1].pts : null;
   const carnitasPayers = anyPoints ? ranked.filter(p => p.pts === lastPts) : [];
   const chipEls = [`<span class="stat-chip"><b>${judged.length}</b> partidos juzgados</span>`];
-  if (snipers.length === 1) chipEls.push(`<span class="stat-chip">🎯 Francotirador: <b>${esc(snipers[0].name)}</b> (${maxExact} exactos)</span>`);
-  else if (snipers.length > 1) chipEls.push(`<span class="stat-chip">🎯 Francotiradores: <b>${snipers.map(p => esc(p.name)).join(", ")}</b> (${maxExact} exactos)</span>`);
+  const exactGamesFor = (idx) => judged
+    .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id]) === 5)
+    .sort((a, b) => a.num - b.num);
+  const gameRow = (m) => {
+    const r = state.results[m.id];
+    return `<div class="clown-game">#${m.num} ${esc(m.home)} <b>${r[0]}–${r[1]}</b> ${esc(m.away)}</div>`;
+  };
+  if (snipers.length === 1) {
+    const sniperGames = exactGamesFor(snipers[0].idx).map(gameRow).join("");
+    chipEls.push(`<details class="stat-chip clown-chip"><summary>🎯 Francotirador: <b>${esc(snipers[0].name)}</b> (${maxExact} exactos) ▾</summary><div class="clown-list">${sniperGames}</div></details>`);
+  } else if (snipers.length > 1) {
+    const sniperGames = snipers.map(p =>
+      `<div class="sniper-name">${esc(p.name)}</div>${exactGamesFor(p.idx).map(gameRow).join("")}`).join("");
+    chipEls.push(`<details class="stat-chip clown-chip"><summary>🎯 Francotiradores: <b>${snipers.map(p => esc(p.name)).join(", ")}</b> (${maxExact} exactos) ▾</summary><div class="clown-list">${sniperGames}</div></details>`);
+  }
   if (clownMatches.length) {
-    const gameList = clownMatches.map(m => {
-      const r = state.results[m.id];
-      return `<div class="clown-game">#${m.num} ${esc(m.home)} <b>${r[0]}–${r[1]}</b> ${esc(m.away)}</div>`;
-    }).join("");
+    const gameList = clownMatches.map(gameRow).join("");
     chipEls.push(`<details class="stat-chip clown-chip"><summary>🤡 Payasadas grupales: <b>${clownMatches.length}</b> ▾</summary><div class="clown-list">${gameList}</div></details>`);
   }
   if (anyPoints && carnitasPayers.length === 1) chipEls.push(`<span class="stat-chip">🌮 Carnitas: las paga <b>${esc(carnitasPayers[0].name)}</b></span>`);
