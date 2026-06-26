@@ -552,21 +552,16 @@ const KICKOFFS = {
   m72: Date.UTC(2026,5,28, 5, 0), // Jordania-Argentina    10pm PT
 };
 
-// Notas de la última jornada de grupos (Jue 25 Jun). Avanzan los 2 primeros de
-// cada grupo + los 8 mejores terceros. Posiciones tras la 2ª jornada:
-//   Grupo D: EE.UU. 6(+5) · Australia 3(0) · Paraguay 3(−2) · Turquía 0(−3)
-//   Grupo E: Alemania 6(+7) · C. de Marfil 3(0) · Ecuador 1(−1) · Curazao 1(−6)
-//   Grupo F: P. Bajos 4(+4) · Japón 4(+4) · Suecia 3(0) · Túnez 0(−8)
 const MATCH_NOTES = {
-  // Grupo E
-  m55: "<b>Alemania</b> ya está clasificada y casi sellada como 1ª (+7 de diferencia): ni una derrota la baja del primer puesto salvo catástrofe. <b>Ecuador</b> está obligada a ganar para soñar con el 2°; con empate queda casi fuera y dependería de que Costa de Marfil pierda y del repechaje de mejores terceros.",
-  m56: "<b>Costa de Marfil</b> ganando llega a 6 y amarra el 2° (no alcanza a Alemania); con empate también queda muy bien para 2° o mejor tercero; si pierde, cae a 3 y se complica. <b>Curazao</b> está obligada a ganar y aun así su −6 de diferencia casi la condena: necesita goleada y otros resultados. Prácticamente eliminada.",
-  // Grupo F
-  m57: "<b>Japón</b> con empate o victoria avanza; ganando pelea el 1° con Países Bajos por diferencia de goles. <b>Suecia</b> debe ganar para avanzar (llegaría a 6 y 2°); con empate quedaría 3ª a la espera de mejor tercero, y si pierde queda eliminada.",
-  m58: "<b>Países Bajos</b> con empate o victoria avanza; ganando lucha por el 1° con Japón en la diferencia de goles. <b>Túnez</b> ya está eliminada (0 pts, −8): juega solo por el honor.",
-  // Grupo D
-  m59: "<b>Estados Unidos</b> ya está clasificado: empate o victoria = 1° asegurado, y su +5 lo protege casi de cualquier resultado. <b>Turquía</b> necesita ganar y además que el Paraguay–Australia NO termine en empate, para superar por diferencia al perdedor de ese duelo; de lo contrario, eliminada.",
-  m60: "El ganador se queda con el 2° y avanza. Con <b>empate</b> ambos llegan a 4 y eliminan a Turquía: el 2° sería <b>Australia</b> por mejor diferencia (0 vs −2) y <b>Paraguay</b> quedaría 3° con opción de mejor tercero. El que pierda cae a 3 y queda a merced de Turquía y del repechaje.",
+  // Grupo I
+  m61: "<b>Francia</b> llega como líder y favorita al 1°; un empate casi le basta. <b>Noruega</b> necesita ganar para asegurar el pase directo y pelear el 1°; con empate dependería del resultado Senegal–Irak.",
+  m62: "<b>Senegal</b> con una victoria asegura el 2° y avanza. <b>Irak</b> necesita ganar y esperar que Noruega no pierda por mucho — prácticamente eliminada.",
+  // Grupo H
+  m63: "<b>Cabo Verde</b> y <b>Arabia Saudita</b> se juegan la vida: el ganador puede meterse como mejor tercero; un empate casi condena a ambos.",
+  m64: "<b>España</b> pelea el 1° y con empate o victoria clasifica. <b>Uruguay</b> necesita ganar para asegurar el 2°; con empate podría quedarse fuera dependiendo de Cabo Verde–Arabia.",
+  // Grupo G
+  m65: "<b>Egipto</b> e <b>Irán</b> necesitan ganar para tener opción de mejor tercero. El empate casi elimina a los dos.",
+  m66: "<b>Bélgica</b> llega como líder y clasifica con empate; ganando amarra el 1°. <b>Nueva Zelanda</b> debe ganar y esperar resultados para colarse entre los mejores terceros.",
 };
 
 function isLocked(m) {
