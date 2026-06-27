@@ -552,16 +552,20 @@ const KICKOFFS = {
   m72: Date.UTC(2026,5,28, 5, 0), // Jordania-Argentina    10pm PT
 };
 
+// Posiciones tras la 2ª jornada (Sáb 27 Jun — última jornada grupos J, K, L):
+//   Grupo J: Argentina 6(+5) · Austria 3(0) · Argelia 3(−2) · Jordania 0(−3)
+//   Grupo K: Colombia 6(+4) · Portugal 4(+5) · RD del Congo 1(−1) · Uzbekistán 0(−7)
+//   Grupo L: Inglaterra 4(+2) · Ghana 4(+1) · Croacia 3(−1) · Panamá 0(−2)
 const MATCH_NOTES = {
-  // Grupo I
-  m61: "<b>Francia</b> llega como líder y favorita al 1°; un empate casi le basta. <b>Noruega</b> necesita ganar para asegurar el pase directo y pelear el 1°; con empate dependería del resultado Senegal–Irak.",
-  m62: "<b>Senegal</b> con una victoria asegura el 2° y avanza. <b>Irak</b> necesita ganar y esperar que Noruega no pierda por mucho — prácticamente eliminada.",
-  // Grupo H
-  m63: "<b>Cabo Verde</b> y <b>Arabia Saudita</b> se juegan la vida: el ganador puede meterse como mejor tercero; un empate casi condena a ambos.",
-  m64: "<b>España</b> pelea el 1° y con empate o victoria clasifica. <b>Uruguay</b> necesita ganar para asegurar el 2°; con empate podría quedarse fuera dependiendo de Cabo Verde–Arabia.",
-  // Grupo G
-  m65: "<b>Egipto</b> e <b>Irán</b> necesitan ganar para tener opción de mejor tercero. El empate casi elimina a los dos.",
-  m66: "<b>Bélgica</b> llega como líder y clasifica con empate; ganando amarra el 1°. <b>Nueva Zelanda</b> debe ganar y esperar resultados para colarse entre los mejores terceros.",
+  // Grupo L
+  m67: "<b>Inglaterra</b> (4 pts) clasifica con empate o victoria. <b>Panamá</b> está eliminada (0 pts): solo juega por el honor.",
+  m68: "El partido que decide el grupo. <b>Ghana</b> (4 pts) avanza con empate o victoria. <b>Croacia</b> (3 pts) debe ganar y rezar para que Inglaterra no gane — si ambas ganan, Croacia es 2ª por puntos.",
+  // Grupo K
+  m69: "Ambos clasificados — pelea por el 1°. <b>Colombia</b> (6 pts) lo mantiene con empate. <b>Portugal</b> (4 pts) necesita ganar para arrebatarle el liderato.",
+  m70: "<b>RD del Congo</b> (1 pt) busca sumar para colarse como mejor tercero. <b>Uzbekistán</b> (0 pts) está eliminada.",
+  // Grupo J
+  m71: "Duelo por el 2°: ambos con 3 pts pero <b>Austria</b> gana en diferencia de goles (0 vs −2). <b>Argelia</b> necesita ganar para asegurar el pase; con empate Austria mantiene la ventaja.",
+  m72: "<b>Argentina</b> ya es 1ª (6 pts) y está clasificada. <b>Jordania</b> (0 pts), eliminada, cierra su Mundial.",
 };
 
 function isLocked(m) {
