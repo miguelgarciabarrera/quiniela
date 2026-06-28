@@ -330,6 +330,7 @@
   td.match-cell { text-align: left; background: #0f1715; min-width: 260px; }
   .m-num { font-family: var(--display); color: var(--muted); font-size: 16px; letter-spacing: .5px; }
   .m-teams { font-weight: 600; font-size: 17px; }
+  .m-rec { font-family: "Space Grotesk", sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); }
   .m-group { color: var(--accent); font-size: 12px; font-weight: 600; }
   .winner { color: var(--gold); font-weight: 700; }
   .lock-tag {
@@ -1157,8 +1158,9 @@ function renderMatches() {
         <span class="m-num">#${m.num}</span> <span class="m-group">${esc(m.group)}</span>
         ${!dateLocked && locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
-        <span class="m-teams">${homeHtml} <span class="dash">vs</span> ${awayHtml}</span>
+        <span class="m-teams">${homeHtml}${m.recHome ? ` <span class="m-rec">(${esc(m.recHome)})</span>` : ""} <span class="dash">vs</span> ${awayHtml}${m.recAway ? ` <span class="m-rec">(${esc(m.recAway)})</span>` : ""}</span>
         ${!locked && KICKOFFS[m.id] ? `<span class="kickoff-cd" data-ko="${KICKOFFS[m.id]}"></span>` : ""}
+        ${m.stat ? `<span class="m-note">📊 ${esc(m.stat)}</span>` : ""}
         ${MATCH_NOTES[m.id] ? `<span class="m-note">🧮 ${MATCH_NOTES[m.id]}</span>` : ""}
       </td>`;
       state.players.forEach((_, i) => {
