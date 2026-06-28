@@ -381,6 +381,31 @@
   td.pts-3 .pts-badge { color: var(--yellow-b); }
   td.pts-0 .pts-badge { color: var(--red-b); }
 
+  /* eliminatorias: control segmentado "¿Cómo se define?" (90'/alargue/penales) */
+  .def-q {
+    display: block; margin-top: 9px; font-size: 9px; font-weight: 700;
+    letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
+  }
+  .def-seg {
+    display: inline-flex; gap: 2px; margin-top: 3px; padding: 2px;
+    border: 1px solid var(--border); border-radius: 8px; background: #0e1513;
+  }
+  .def-opt {
+    font-family: "Space Grotesk", sans-serif; font-size: 10px; font-weight: 600;
+    color: var(--muted); background: transparent; border: 0; border-radius: 6px;
+    padding: 3px 7px; cursor: pointer; white-space: nowrap; transition: background .12s, color .12s;
+  }
+  .def-opt:hover:not(:disabled) { color: var(--text); }
+  .def-opt.active { background: var(--accent); color: #04130d; }
+  .def-opt.truth { box-shadow: inset 0 0 0 1px var(--gold); } /* lo que de verdad pasó */
+  .def-opt:disabled { cursor: not-allowed; }
+  .def-badge {
+    display: inline-block; margin-left: 6px; font-family: "Space Grotesk", sans-serif;
+    font-size: 11px; font-weight: 700;
+  }
+  .def-badge.hit { color: var(--green-b); }
+  .def-badge.miss { color: var(--muted); }
+
   .add-form {
     display: none; gap: 8px; flex-wrap: wrap; align-items: center;
     background: var(--panel); border: 1px solid var(--border);
@@ -498,7 +523,7 @@
     <p class="tagline" id="tagline"></p>
     <div class="leaderboard" id="leaderboard"></div>
     <div class="stats-strip" id="statsStrip"></div>
-    <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.</p>
+    <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.<br><span style="color:var(--muted)">🏟️ En eliminatorias el marcador es <b>a los 90′</b>. Bonus: adivina si se define en 90′, alargue o penales y suma <b style="color:var(--accent)">+1</b> (fallar no resta).</span></p>
   </div>
 </header>
 
@@ -842,6 +867,8 @@ function defaultState() {
     extraMatches: [],          // partidos agregados a mano (eliminatorias)
     picks: {},                 // picks[matchId][playerIdx] = [local, visitante]
     results: {},               // results[matchId] = [local, visitante]
+    defs: {},                  // defs[matchId][playerIdx] = "90"|"et"|"pen" (eliminatorias: cómo se define)
+    defResults: {},            // defResults[matchId] = "90"|"et"|"pen" (cómo se definió de verdad)
     champs: {},                // champs[playerIdx] = equipo
     subs: {},                  // subs[playerIdx] = equipo subcampeón
     balons: {},                // balons[playerIdx] = jugador balón de oro
@@ -889,15 +916,19 @@ function scorePick(pick, result) {
 }
 
 function totals() {
-  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0 }));
+  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0, bonus: 0 }));
   for (const m of allMatches()) {
     const result = state.results[m.id];
-    if (!result) continue;
+    const dr = state.defResults[m.id]; // cómo se definió (sólo eliminatorias)
+    if (!result && !dr) continue;
     state.players.forEach((_, i) => {
       if (VETOED_PICKS[m.id]?.has(i)) return; // anulado por el tribunal
-      const s = scorePick((state.picks[m.id] || {})[i], result);
-      if (s === 5) { t[i].pts += 5; t[i].exact++; }
-      else if (s === 3) { t[i].pts += 3; t[i].winner++; }
+      if (result) {
+        const s = scorePick((state.picks[m.id] || {})[i], result);
+        if (s === 5) { t[i].pts += 5; t[i].exact++; }
+        else if (s === 3) { t[i].pts += 3; t[i].winner++; }
+      }
+      if (dr && (state.defs[m.id] || {})[i] === dr) { t[i].pts += 1; t[i].bonus++; } // acertó 90'/alargue/penales
     });
   }
   return t;
@@ -939,7 +970,7 @@ function renderLeaderboard() {
         <span class="lb-pts">${p.pts}</span>
       </div>
       <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
-      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
+      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus 🏟️` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
       <span class="lb-detail">racha ${formLine(p.idx)}</span>
     </div>`;
   }).join("");
@@ -1057,6 +1088,32 @@ function renderPicks() {
   }).join("");
 }
 
+// eliminatorias: cómo se define el partido (+1 si el jugador acierta)
+const DEF_OPTS = [["90", "90′"], ["et", "Alargue"], ["pen", "Penales"]];
+const DEF_LABELS = { "90": "90′", et: "Alargue", pen: "Penales" };
+
+// control segmentado para el jugador i (o para La Realidad si i === null)
+function defControl(matchId, i) {
+  const isReal = i === null;
+  const dr = state.defResults[matchId];
+  const cur = isReal ? dr : (state.defs[matchId] || {})[i];
+  const m = allMatches().find(x => x.id === matchId);
+  const dis = isReal
+    ? ((LOCKED_DATES.has(m?.date) || LOCKED_RESULTS.has(matchId)) ? "disabled" : "")
+    : (m && isLocked(m) ? "disabled" : "");
+  const fn = isReal ? `setDefResult('${matchId}',` : `setDef('${matchId}',${i},`;
+  const btns = DEF_OPTS.map(([v, l]) => {
+    const active = cur === v ? " active" : "";
+    const truth = (!isReal && dr === v) ? " truth" : ""; // marca lo que de verdad pasó
+    return `<button class="def-opt${active}${truth}" ${dis} onclick="${fn}'${v}')">${l}</button>`;
+  }).join("");
+  let tag = "";
+  if (!isReal && dr && cur) tag = cur === dr
+    ? `<span class="def-badge hit">+1</span>`
+    : `<span class="def-badge miss">+0</span>`;
+  return `<span class="def-q">${isReal ? "Se definió en" : "¿Cómo se define?"}</span><span class="def-seg">${btns}</span>${tag}`;
+}
+
 function renderMatches() {
   const filter = document.getElementById("filterSel").value;
   const byDate = {};
@@ -1119,6 +1176,7 @@ function renderMatches() {
             <input type="number" min="0" max="99" value="${pick[1]}" ${vetoed ? "disabled" : dis} onchange="setPick('${m.id}',${i},1,this.value)">
           </span>
           ${badge}
+          ${m.extra && !vetoed ? defControl(m.id, i) : ""}
         </td>`;
       });
       const r = result || ["", ""];
@@ -1128,6 +1186,7 @@ function renderMatches() {
           <span class="dash">–</span>
           <input type="number" min="0" max="99" value="${r[1]}" ${resultDis} onchange="setResult('${m.id}',1,this.value)">
         </span>
+        ${m.extra ? defControl(m.id, null) : ""}
       </td></tr>`;
     }
     html += `</table></div></div>`;
@@ -1288,6 +1347,29 @@ function setResult(matchId, side, value) {
   if (r[0] === "" && r[1] === "") delete state.results[matchId];
   save(); renderLeaderboard(); renderMatches();
   announceResult(matchId);
+}
+
+// eliminatorias: pronóstico del jugador de cómo se define (90'/alargue/penales)
+function setDef(matchId, playerIdx, value) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (m && isLocked(m)) { renderMatches(); return; }
+  const defs = state.defs[matchId] = state.defs[matchId] || {};
+  if (defs[playerIdx] === value) delete defs[playerIdx]; // volver a tocar = quitar
+  else defs[playerIdx] = value;
+  stampEdit(playerIdx, m
+    ? `[flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]: se define en ${defs[playerIdx] ? DEF_LABELS[defs[playerIdx]] : "(sin elegir)"}`
+    : "se define");
+  if (!Object.keys(defs).length) delete state.defs[matchId];
+  save(); renderLeaderboard(); renderMatches(); renderActivity();
+}
+
+// eliminatorias: cómo se definió de verdad (La Realidad)
+function setDefResult(matchId, value) {
+  const lm = allMatches().find(x => x.id === matchId);
+  if (lm && (LOCKED_DATES.has(lm.date) || LOCKED_RESULTS.has(lm.id))) { renderMatches(); return; }
+  if (state.defResults[matchId] === value) delete state.defResults[matchId]; // volver a tocar = quitar
+  else state.defResults[matchId] = value;
+  save(); renderLeaderboard(); renderMatches();
 }
 
 function announceResult(matchId) {
