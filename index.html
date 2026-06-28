@@ -1104,7 +1104,7 @@ function defControl(matchId, i) {
   const fn = isReal ? `setDefResult('${matchId}',` : `setDef('${matchId}',${i},`;
   const btns = DEF_OPTS.map(([v, l]) => {
     const active = cur === v ? " active" : "";
-    const truth = (!isReal && dr === v) ? " truth" : ""; // marca lo que de verdad pasó
+    const truth = (!isReal && cur && dr === v) ? " truth" : ""; // sólo si el jugador participó
     return `<button class="def-opt${active}${truth}" ${dis} onclick="${fn}'${v}')">${l}</button>`;
   }).join("");
   let tag = "";
