@@ -1077,8 +1077,8 @@ function renderMatches() {
       lastPhase = koMatch.group;
       const theme = roundTheme(koMatch.group);
       html += `<div class="phase-banner ${theme.cls}">
-        <span class="pb-round">${esc(koMatch.group)}</span>
-        <span class="pb-title">Eliminatorias</span>
+        <span class="pb-round">Eliminatorias</span>
+        <span class="pb-title">${esc(koMatch.group)}</span>
         <span class="pb-sub">${theme.sub}</span>
       </div>`;
     }
