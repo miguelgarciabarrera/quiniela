@@ -261,16 +261,21 @@
   .act-when { margin-left: auto; flex-shrink: 0; font-size: 13px; color: var(--accent); }
 
   .phase-banner {
+    /* paleta por defecto (oro); cada ronda la sobrescribe abajo */
+    --pb-c1: var(--gold); --pb-c2: #fff0b8; --pb-c3: #ff9f43;
+    --pb-edge: #3a3014; --pb-glow: #2a2410;
+    --pb-chip: var(--gold); --pb-chip-edge: #5a4a1e; --pb-sub: var(--accent);
+    --pb-size: clamp(46px, 12vw, 92px);
     margin: 48px 0 10px; padding: 26px 20px; text-align: center;
     border-radius: 16px; position: relative; overflow: hidden;
     background:
-      radial-gradient(120% 140% at 50% 0%, #2a2410 0%, transparent 62%),
+      radial-gradient(120% 140% at 50% 0%, var(--pb-glow) 0%, transparent 62%),
       linear-gradient(180deg, #14110a, #0b0e0d);
-    border: 1px solid #3a3014;
+    border: 1px solid var(--pb-edge);
   }
   .phase-banner::before {
     content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(100deg, transparent 32%, #f2c14e1f 50%, transparent 68%);
+    background: linear-gradient(100deg, transparent 32%, color-mix(in srgb, var(--pb-c1) 14%, transparent) 50%, transparent 68%);
     background-size: 220% 100%; animation: pb-shimmer 4.5s linear infinite;
   }
   @keyframes pb-shimmer { to { background-position: -220% 0; } }
@@ -278,14 +283,14 @@
   .pb-round {
     display: inline-block; font-family: "Space Grotesk", sans-serif;
     font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--gold); border: 1px solid #5a4a1e; border-radius: 999px;
+    color: var(--pb-chip); border: 1px solid var(--pb-chip-edge); border-radius: 999px;
     padding: 4px 14px; margin-bottom: 12px;
   }
   .pb-title {
     display: block; font-family: var(--display); font-weight: 400;
-    font-size: clamp(46px, 12vw, 92px); line-height: .88; letter-spacing: 2px;
+    font-size: var(--pb-size); line-height: .88; letter-spacing: 2px;
     text-transform: uppercase;
-    background: linear-gradient(100deg, var(--gold), #fff0b8 45%, #ff9f43 80%, var(--gold));
+    background: linear-gradient(100deg, var(--pb-c1), var(--pb-c2) 45%, var(--pb-c3) 80%, var(--pb-c1));
     background-size: 200% auto;
     -webkit-background-clip: text; background-clip: text; color: transparent;
     animation: pb-gold 5s linear infinite;
@@ -293,8 +298,16 @@
   @keyframes pb-gold { to { background-position: 200% center; } }
   .pb-sub {
     display: block; margin-top: 8px; font-style: italic; font-weight: 500;
-    color: var(--accent); font-size: clamp(14px, 3.5vw, 18px); letter-spacing: .5px;
+    color: var(--pb-sub); font-size: clamp(14px, 3.5vw, 18px); letter-spacing: .5px;
   }
+  /* una piel por ronda — el color sube de temperatura hacia la final */
+  .phase-banner.r16   { --pb-c1:#7fe3ff; --pb-c2:#e8fbff; --pb-c3:#34e0a1; --pb-edge:#123a3a; --pb-glow:#0c2628; --pb-chip:#7fe3ff; --pb-chip-edge:#1c5a5a; --pb-sub:#7fe3ff; }
+  .phase-banner.roct  { --pb-c1:#b69bff; --pb-c2:#efe9ff; --pb-c3:#8b5cf6; --pb-edge:#241a3a; --pb-glow:#170f2a; --pb-chip:#b69bff; --pb-chip-edge:#3d2e6a; --pb-sub:#b69bff; }
+  .phase-banner.rcuartos { --pb-c1:#ff8db0; --pb-c2:#ffe2ec; --pb-c3:#ff5d8f; --pb-edge:#3a1422; --pb-glow:#2a0d18; --pb-chip:#ff8db0; --pb-chip-edge:#5a1e34; --pb-sub:#ff8db0; }
+  .phase-banner.rsemis { --pb-c1:#ffb347; --pb-c2:#fff0c8; --pb-c3:#ff6b35; --pb-edge:#3a2410; --pb-glow:#2a1808; --pb-chip:#ffb347; --pb-chip-edge:#6a4a1e; --pb-sub:#ffb347; --pb-size: clamp(50px, 13vw, 100px); }
+  .phase-banner.rtercero { --pb-c1:#cd9b6a; --pb-c2:#f0dcc4; --pb-c3:#a87444; --pb-edge:#2e2014; --pb-glow:#1f140a; --pb-chip:#cd9b6a; --pb-chip-edge:#52402a; --pb-sub:#cd9b6a; }
+  .phase-banner.rfinal { --pb-c1:#ff5d5d; --pb-c2:#ffe7a8; --pb-c3:#ffd24a; --pb-edge:#4a1414; --pb-glow:#330d0d; --pb-chip:#ffd24a; --pb-chip-edge:#6a2a1e; --pb-sub:#ff8585; --pb-size: clamp(58px, 15vw, 118px); padding: 34px 20px; }
+  .phase-banner.rfinal::before { animation-duration: 2.8s; }
 
   .date-section { margin-top: 30px; }
   .date-title {
@@ -595,6 +608,20 @@ function isLocked(m) {
   if (LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id)) return true;
   const ko = KICKOFFS[m.id];
   return ko !== undefined && Date.now() >= ko;
+}
+
+// piel + frase del banner según la fase (texto libre del partido). Se prueban
+// los términos más específicos primero porque "octavos de final" contiene "final".
+function roundTheme(group) {
+  const g = (group || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (g.includes("octav") || g.includes("8vo")) return { cls: "roct",     sub: "el que pestañea, se va" };
+  if (g.includes("cuart") || g.includes("4to")) return { cls: "rcuartos", sub: "ocho llegaron, cuatro lloran" };
+  if (g.includes("semi"))                        return { cls: "rsemis",   sub: "a un paso de la gloria" };
+  if (g.includes("tercer") || g.includes("3er") || g.includes("3r")) return { cls: "rtercero", sub: "el duelo que nadie quería jugar" };
+  if (g.includes("16"))                          return { cls: "r16",      sub: "ya no hay margen de error" };
+  if (g.includes("32"))                          return { cls: "r32",      sub: "se acabaron los empates" };
+  if (g.includes("final"))                       return { cls: "rfinal",   sub: "el último baile: todo o nada" };
+  return { cls: "", sub: "el que pierde, se va a casa" };
 }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
@@ -1048,10 +1075,11 @@ function renderMatches() {
     const koMatch = matches.find(m => m.extra);
     if (koMatch && koMatch.group !== lastPhase) {
       lastPhase = koMatch.group;
-      html += `<div class="phase-banner">
+      const theme = roundTheme(koMatch.group);
+      html += `<div class="phase-banner ${theme.cls}">
         <span class="pb-round">${esc(koMatch.group)}</span>
         <span class="pb-title">Eliminatorias</span>
-        <span class="pb-sub">se acabaron los empates</span>
+        <span class="pb-sub">${theme.sub}</span>
       </div>`;
     }
     const dateLocked = LOCKED_DATES.has(date);
