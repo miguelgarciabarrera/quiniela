@@ -157,6 +157,52 @@
   .rules { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
   .rules b { font-weight: 700; }
 
+  /* 🔥 racha que quema */
+  .hot-badge {
+    font-size: 12px; font-weight: 700; color: var(--hot);
+    background: #2a130b; border: 1px solid #5a2615; border-radius: 999px;
+    padding: 1px 7px; margin-left: 6px; letter-spacing: .3px; white-space: nowrap;
+  }
+
+  /* 🌶️ El Clásico */
+  .clasico-banner {
+    margin-top: 12px; padding: 10px 16px; border-radius: 12px;
+    background: linear-gradient(100deg, #2a0d18, #1a0a10);
+    border: 1px solid #5a1e34; color: var(--text); font-size: 15px;
+  }
+  .clasico-banner .clasico-label {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .6px; color: #ff8db0; margin-right: 4px;
+  }
+  .clasico-banner b { color: var(--text); }
+
+  /* 🍳 se está cocinando */
+  #cookingStrip:not(:empty) { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .cook-title {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--hot);
+  }
+  .cook-card {
+    border: 1px solid #5a2615; border-radius: 12px; padding: 10px 14px;
+    background: linear-gradient(100deg, #1c1108, #140d09);
+  }
+  .cook-head { font-size: 15px; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .cook-live {
+    font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--hot);
+    animation: cook-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes cook-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .cook-score { font-weight: 800; font-size: 18px; color: var(--gold); }
+  .cook-if { font-size: 12px; color: var(--muted); font-style: italic; }
+  .cook-row { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .cook-chip {
+    font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 9px;
+    border: 1px solid var(--border); color: var(--text);
+  }
+  .cook-chip.pts-5 { background: var(--green); color: var(--green-b); border-color: #1f6b4a; }
+  .cook-chip.pts-3 { background: #2a2410; color: var(--yellow-b); border-color: #6a5a1e; }
+  .cook-chip.pts-0 { background: #2a1010; color: var(--muted); border-color: #5a1e1e; }
+
   main { padding: 22px 24px 80px; max-width: 1600px; margin: 0 auto; }
 
   h2 {
@@ -543,6 +589,8 @@
     <h1><span class="ball">⚽</span> Quiniela <span class="gold">Mundial 2026</span></h1>
     <p class="tagline" id="tagline"></p>
     <div class="leaderboard" id="leaderboard"></div>
+    <div id="cookingStrip"></div>
+    <div id="clasicoBanner"></div>
     <div class="stats-strip" id="statsStrip"></div>
     <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.<br><span style="color:var(--muted)">🏟️ En eliminatorias el marcador es <b>a los 90′</b>. Bonus: adivina si se define en 90′, alargue o penales y suma <b style="color:var(--accent)">+1</b> (fallar no resta).</span></p>
   </div>
@@ -1039,7 +1087,7 @@ function scorePick(pick, result) {
 }
 
 function totals() {
-  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0, bonus: 0 }));
+  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0, bonus: 0, hot: 0, streak: 0 }));
   for (const m of allMatches()) {
     const result = state.results[m.id];
     const dr = state.defResults[m.id]; // cómo se definió (sólo eliminatorias)
@@ -1054,6 +1102,17 @@ function totals() {
       if (dr && (state.defs[m.id] || {})[i] === dr) { t[i].pts += 1; t[i].bonus++; } // acertó 90'/alargue/penales
     });
   }
+  // 🔥 racha que quema: +1 por cada partido que sostiene una racha de aciertos (E o C) de 3+
+  const judged = allMatches().filter(m => state.results[m.id]).sort((a, b) => a.num - b.num);
+  state.players.forEach((_, i) => {
+    let run = 0;
+    for (const m of judged) {
+      const s = VETOED_PICKS[m.id]?.has(i) ? null : scorePick((state.picks[m.id] || {})[i], state.results[m.id]);
+      if (s === 5 || s === 3) { run++; if (run >= 3) { t[i].pts += 1; t[i].hot += 1; } }
+      else run = 0;
+    }
+    t[i].streak = run; // racha viva (aciertos consecutivos hasta el último partido juzgado)
+  });
   return t;
 }
 
@@ -1090,14 +1149,32 @@ function renderLeaderboard() {
       <div class="lb-top">
         <span class="lb-rank ${anyPoints ? "r" + (r + 1) : "wait"}">${anyPoints ? (r + 1) : "—"}</span>
         <span class="lb-name">${esc(p.name)}</span>
+        ${p.streak >= 3 ? `<span class="hot-badge" title="${p.streak} aciertos al hilo">🔥 ${p.streak}</span>` : ""}
         <span class="lb-pts">${p.pts}</span>
       </div>
       <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
-      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus 🏟️` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
+      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus 🏟️` : ""}${p.hot ? ` <span class="sep">·</span> ${p.hot} 🔥` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
       <span class="lb-detail">racha ${formLine(p.idx)}</span>
     </div>`;
   }).join("");
+  document.getElementById("clasicoBanner").innerHTML = clasicoHtml(ranked, anyPoints);
   renderStats(ranked, anyPoints);
+}
+
+// 🌶️ El Clásico: el par adyacente en la tabla con menor diferencia de puntos.
+// En empates de diferencia gana el par más arriba (la pelea por el trono pesa más).
+function clasicoHtml(ranked, anyPoints) {
+  if (!anyPoints || ranked.length < 2) return "";
+  let best = null;
+  for (let i = 0; i < ranked.length - 1; i++) {
+    const gap = ranked[i].pts - ranked[i + 1].pts;
+    if (best === null || gap < best.gap) best = { gap, a: ranked[i], b: ranked[i + 1] };
+  }
+  if (!best) return "";
+  const tail = best.gap === 0
+    ? `empatados a ${best.a.pts}, esto es personal`
+    : `a ${best.gap} ${best.gap === 1 ? "punto" : "puntos"}, esto es personal`;
+  return `<div class="clasico-banner">🌶️ <span class="clasico-label">El Clásico</span> <b>${esc(best.a.name)}</b> vs <b>${esc(best.b.name)}</b> — ${tail}</div>`;
 }
 
 function renderStats(ranked, anyPoints) {
@@ -1114,6 +1191,61 @@ function renderStats(ranked, anyPoints) {
   const lastPts = anyPoints ? ranked[ranked.length - 1].pts : null;
   const carnitasPayers = anyPoints ? ranked.filter(p => p.pts === lastPts) : [];
   const chipEls = [`<span class="stat-chip"><b>${judged.length}</b> partidos juzgados</span>`];
+
+  // 👑 Jugador de la Jornada: MVP de la fecha del último partido juzgado
+  const lastJudged = [...judged].sort((a, b) => b.num - a.num)[0];
+  if (lastJudged) {
+    const jDate = lastJudged.date;
+    const dayMatches = judged.filter(m => m.date === jDate);
+    const dayStat = state.players.map((_, i) => {
+      let pts = 0, ex = 0;
+      for (const m of dayMatches) {
+        if (VETOED_PICKS[m.id]?.has(i)) continue;
+        const s = scorePick((state.picks[m.id] || {})[i], state.results[m.id]);
+        if (s === 5) { pts += 5; ex++; } else if (s === 3) pts += 3;
+        if (state.defResults[m.id] && (state.defs[m.id] || {})[i] === state.defResults[m.id]) pts += 1;
+      }
+      return { pts, ex };
+    });
+    const maxDay = Math.max(...dayStat.map(d => d.pts));
+    if (maxDay > 0) {
+      const mvps = state.players.map((n, i) => ({ n, i })).filter(x => dayStat[x.i].pts === maxDay);
+      const names = mvps.map(x => `<b>${esc(x.n)}</b>`).join(" y ");
+      const exTxt = mvps.length === 1 && dayStat[mvps[0].i].ex ? ` · ${dayStat[mvps[0].i].ex} exacto${dayStat[mvps[0].i].ex > 1 ? "s" : ""}` : "";
+      chipEls.push(`<span class="stat-chip">👑 Jugador de la Jornada (${esc(jDate)}): ${names} · ${maxDay} pts${exTxt}</span>`);
+    }
+  }
+
+  // 🐎 Rebelde con causa: fue contra la manada y le atinó al resultado (la manada falló)
+  const outcomeOf = (a, b) => { const d = Math.sign(+a - +b); return d > 0 ? "H" : d < 0 ? "A" : "D"; };
+  const outcomeLbl = (o, m) => o === "H" ? m.home : o === "A" ? m.away : "empate";
+  let rebel = null;
+  for (const m of [...judged].sort((a, b) => a.num - b.num)) {
+    const r = state.results[m.id];
+    if (!r || r[0] === "" || r[1] === "" || r[0] == null || r[1] == null) continue;
+    const actual = outcomeOf(r[0], r[1]);
+    const votes = { H: 0, D: 0, A: 0 };
+    const picked = state.players.map((_, i) => {
+      if (VETOED_PICKS[m.id]?.has(i)) return null;
+      const p = (state.picks[m.id] || {})[i];
+      if (!p || p[0] === "" || p[1] === "" || p[0] == null || p[1] == null) return null;
+      const o = outcomeOf(p[0], p[1]); votes[o]++; return o;
+    });
+    const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
+    if (sorted[0][1] === 0) continue;                       // nadie jugó
+    if (sorted[0][1] === sorted[1][1]) continue;            // sin manada clara (empate de votos)
+    const herd = sorted[0][0];
+    if (herd === actual) continue;                          // la manada acertó: no hay héroe
+    const rebels = state.players.map((n, i) => ({ n, i })).filter(x => picked[x.i] === actual);
+    if (rebels.length) rebel = { m, herd, actual, rebels };
+  }
+  if (rebel) {
+    const names = rebel.rebels.map(x => `<b>${esc(x.n)}</b>`).join(" y ");
+    const verb = rebel.rebels.length > 1 ? "dijeron" : "dijo";
+    const know = rebel.rebels.length > 1 ? "saben algo que tú no" : "sabe algo que tú no";
+    chipEls.push(`<span class="stat-chip">🐎 Rebelde con causa: ${names} ${verb} <b>${esc(outcomeLbl(rebel.actual, rebel.m))}</b>, la manada ${esc(outcomeLbl(rebel.herd, rebel.m))}. ${rebel.rebels.length > 1 ? "Ellos" : esc(rebel.rebels[0].n)} ${know}.</span>`);
+  }
+
   const exactGamesFor = (idx) => judged
     .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id]) === 5)
     .sort((a, b) => a.num - b.num);
@@ -1325,6 +1457,42 @@ function renderMatches() {
   document.querySelectorAll('#matchList [style*="overflow-x"]').forEach((el, i) => { if (scrollPositions[i]) el.scrollLeft = scrollPositions[i]; });
   updateCountdowns();
   scheduleRealitySeal();
+  renderCooking();
+}
+
+// 🍳 Se está cocinando: partidos en juego (arrancaron, aún sin sellar) con el
+// reparto provisional de puntos "si así queda". La ventana evita que partidos
+// viejos sin sellar se queden marcados como "en vivo" para siempre.
+const COOK_WINDOW = 150 * 60 * 1000; // ~partido + sobremesa
+function renderCooking() {
+  const el = document.getElementById("cookingStrip");
+  if (!el) return;
+  const now = Date.now();
+  const cooking = allMatches().filter(m => {
+    const ko = matchKo(m);
+    return ko && now >= ko && now < ko + COOK_WINDOW && !isRealitySealed(m);
+  }).sort((a, b) => matchKo(a) - matchKo(b));
+  if (!cooking.length) { el.innerHTML = ""; return; }
+  const cards = cooking.map(m => {
+    const r = state.results[m.id];
+    const hasScore = r && r[0] !== "" && r[1] !== "" && r[0] != null && r[1] != null;
+    const head = `<div class="cook-head"><span class="cook-live">● EN VIVO</span> <b>${esc(m.home)}</b> <span class="cook-score">${hasScore ? `${r[0]}–${r[1]}` : "–"}</span> <b>${esc(m.away)}</b> <span class="cook-if">${hasScore ? "si así queda" : "sin marcador aún"}</span></div>`;
+    let row = "";
+    if (hasScore) {
+      const chips = state.players.map((n, i) => {
+        if (VETOED_PICKS[m.id]?.has(i)) return "";
+        const s = scorePick((state.picks[m.id] || {})[i], r);
+        if (s === null) return "";
+        const defOk = m.extra && state.defResults[m.id] && (state.defs[m.id] || {})[i] === state.defResults[m.id];
+        const cls = s === 5 ? "pts-5" : s === 3 ? "pts-3" : "pts-0";
+        const tag = s === 5 ? "+5" : s === 3 ? "+3" : "+0";
+        return `<span class="cook-chip ${cls}">${esc(n)} ${tag}${defOk ? " 🏟️+1" : ""}</span>`;
+      }).filter(Boolean).join("");
+      if (chips) row = `<div class="cook-row">${chips}</div>`;
+    }
+    return `<div class="cook-card">${head}${row}</div>`;
+  }).join("");
+  el.innerHTML = `<div class="cook-title">🍳 Se está cocinando</div>${cards}`;
 }
 
 function renderAll() {
@@ -1749,6 +1917,7 @@ function updateCountdowns() {
     const sec = Math.floor((diff % 60000) / 1000);
     el.textContent = min >= 1 ? `🔒 se sella en ${min} min` : `🔒 se sella en ${sec}s`;
   });
+  renderCooking(); // refresca "en vivo" y abre/cierra el strip al cruzar kickoff
 }
 setInterval(updateCountdowns, 30000);
 
