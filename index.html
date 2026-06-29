@@ -350,6 +350,16 @@
   }
   .kickoff-cd.soon   { color: var(--yellow-b); }
   .kickoff-cd.urgent { color: var(--hot); }
+  .seal-cd {
+    display: block; font-size: 11px; color: var(--yellow-b);
+    margin-top: 4px; font-weight: 600; letter-spacing: .2px;
+  }
+  .seal-tag {
+    display: inline-block; margin-top: 4px;
+    font-family: "Space Grotesk", sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+  }
   .m-note {
     display: block; font-size: 11px; line-height: 1.45; color: var(--muted);
     margin-top: 6px; padding: 7px 10px; border-left: 2px solid var(--accent);
@@ -937,6 +947,7 @@ const RANK_TITLES = [
 ];
 
 let state = load();
+let realitySealTimer = null; // timeout que sella La Realidad al cumplirse su ventana
 
 function defaultState() {
   return {
@@ -954,7 +965,42 @@ function defaultState() {
     gloves: {},                // gloves[playerIdx] = portero guante de oro
     flops: {},                 // flops[playerIdx] = equipo decepción
     lastEdit: {},              // lastEdit[playerIdx] = timestamp (ms) del último cambio de sus pronósticos
+    realitySealAt: {},         // realitySealAt[matchId] = epoch (ms) en que La Realidad se sella sola
   };
+}
+
+// La Realidad se sella automáticamente este tiempo después de que el marcador Y el
+// "se definió en" quedan completos. La ventana da margen para corregir mistypes;
+// cualquier edición la reinicia. Vaciar un campo cancela el conteo.
+const REALITY_LOCK_DELAY = 5 * 60 * 1000;
+
+function realityManualLocked(m) {
+  return !!m && (LOCKED_DATES.has(m.date) || LOCKED_RESULTS.has(m.id));
+}
+
+// el marcador (ambos dígitos) y el "se definió" están completos
+function realityComplete(matchId) {
+  const r = state.results[matchId];
+  const d = state.defResults[matchId];
+  return !!r && r[0] !== "" && r[0] != null && r[1] !== "" && r[1] != null && d != null && d !== "";
+}
+
+function isRealitySealed(m) {
+  if (!m) return false;
+  if (realityManualLocked(m)) return true;
+  const at = (state.realitySealAt || {})[m.id];
+  return at != null && Date.now() >= at;
+}
+
+// recalcula el cronómetro de sellado tras editar marcador o "se definió"
+function bumpRealitySeal(matchId) {
+  state.realitySealAt = state.realitySealAt || {};
+  const m = allMatches().find(x => x.id === matchId);
+  if (!realityManualLocked(m) && realityComplete(matchId)) {
+    state.realitySealAt[matchId] = Date.now() + REALITY_LOCK_DELAY;
+  } else {
+    delete state.realitySealAt[matchId];
+  }
 }
 
 function load() {
@@ -1176,7 +1222,7 @@ function defControl(matchId, i) {
   const cur = isReal ? dr : (state.defs[matchId] || {})[i];
   const m = allMatches().find(x => x.id === matchId);
   const dis = isReal
-    ? ((LOCKED_DATES.has(m?.date) || LOCKED_RESULTS.has(matchId)) ? "disabled" : "")
+    ? (isRealitySealed(m) ? "disabled" : "")
     : (m && isLocked(m) ? "disabled" : "");
   const fn = isReal ? `setDefResult('${matchId}',` : `setDef('${matchId}',${i},`;
   const btns = DEF_OPTS.map(([v, l]) => {
@@ -1224,7 +1270,9 @@ function renderMatches() {
       const result = state.results[m.id];
       const locked = isLocked(m);
       const dis = locked ? "disabled" : "";
-      const resultDis = (dateLocked || LOCKED_RESULTS.has(m.id)) ? "disabled" : "";
+      const sealed = isRealitySealed(m);
+      const resultDis = sealed ? "disabled" : "";
+      const sealAt = (state.realitySealAt || {})[m.id];
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       if (result && result[0] !== "" && result[1] !== "" && +result[0] !== +result[1]) {
         if (+result[0] > +result[1]) homeHtml = `<span class="winner">${homeHtml} 🏆</span>`;
@@ -1266,6 +1314,7 @@ function renderMatches() {
           <input type="number" min="0" max="99" value="${r[1]}" ${resultDis} onchange="setResult('${m.id}',1,this.value)">
         </span>
         ${m.extra ? defControl(m.id, null) : ""}
+        ${sealed ? `<span class="seal-tag">🔒 sellado</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
       </td></tr>`;
     }
     html += `</table></div></div>`;
@@ -1275,6 +1324,7 @@ function renderMatches() {
     `<p style="color:var(--muted)">Aquí no hay nada. O ya juzgaste todos los partidos o ninguno — las dos cosas dicen algo de ti. 🤷</p>`;
   document.querySelectorAll('#matchList [style*="overflow-x"]').forEach((el, i) => { if (scrollPositions[i]) el.scrollLeft = scrollPositions[i]; });
   updateCountdowns();
+  scheduleRealitySeal();
 }
 
 function renderAll() {
@@ -1423,10 +1473,11 @@ function setPick(matchId, playerIdx, side, value) {
 
 function setResult(matchId, side, value) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && (LOCKED_DATES.has(lm.date) || LOCKED_RESULTS.has(lm.id))) { renderMatches(); return; }
+  if (lm && isRealitySealed(lm)) { renderMatches(); return; }
   const r = state.results[matchId] = state.results[matchId] || ["", ""];
   r[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   if (r[0] === "" && r[1] === "") delete state.results[matchId];
+  bumpRealitySeal(matchId);
   save(); renderLeaderboard(); renderMatches();
   announceResult(matchId);
 }
@@ -1448,9 +1499,10 @@ function setDef(matchId, playerIdx, value) {
 // eliminatorias: cómo se definió de verdad (La Realidad)
 function setDefResult(matchId, value) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && (LOCKED_DATES.has(lm.date) || LOCKED_RESULTS.has(lm.id))) { renderMatches(); return; }
+  if (lm && isRealitySealed(lm)) { renderMatches(); return; }
   if (state.defResults[matchId] === value) delete state.defResults[matchId]; // volver a tocar = quitar
   else state.defResults[matchId] = value;
+  bumpRealitySeal(matchId);
   save(); renderLeaderboard(); renderMatches();
 }
 
@@ -1690,8 +1742,24 @@ function updateCountdowns() {
     el.textContent = text;
     el.className = "kickoff-cd" + (cls ? " " + cls : "");
   });
+  document.querySelectorAll(".seal-cd[data-seal]").forEach(el => {
+    const diff = +el.dataset.seal - now;
+    if (diff <= 0) { el.textContent = "🔒 sellando…"; return; }
+    const min = Math.floor(diff / 60000);
+    const sec = Math.floor((diff % 60000) / 1000);
+    el.textContent = min >= 1 ? `🔒 se sella en ${min} min` : `🔒 se sella en ${sec}s`;
+  });
 }
 setInterval(updateCountdowns, 30000);
+
+// Re-renderiza justo cuando una Realidad alcanza su hora de sellado, para cerrar
+// sus inputs sin que nadie tenga que tocar nada.
+function scheduleRealitySeal() {
+  if (realitySealTimer) { clearTimeout(realitySealTimer); realitySealTimer = null; }
+  const now = Date.now();
+  const next = Object.values(state.realitySealAt || {}).filter(t => t > now).sort((a, b) => a - b)[0];
+  if (next) realitySealTimer = setTimeout(() => { renderMatches(); scheduleRealitySeal(); }, next - now + 1000);
+}
 
 // Re-renderiza automáticamente cuando arranca el siguiente partido para cerrar sus inputs
 function scheduleKickoffRedraw() {
