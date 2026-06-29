@@ -338,6 +338,10 @@
     letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
     border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
   }
+  .m-venue {
+    display: inline-block; font-size: 11px; color: var(--muted);
+    font-weight: 500; margin-top: 2px;
+  }
   .kickoff-cd {
     display: block; font-size: 11px; color: var(--muted);
     margin-top: 3px; font-weight: 500; letter-spacing: .2px;
@@ -655,6 +659,30 @@ const TEAM_KO = {
 
 function matchKo(m) {
   return KICKOFFS[m.id] ?? m.ko ?? TEAM_KO[`${m.home}|${m.away}`];
+}
+
+// 16vos de Final: ciudad sede por Local|Visitante
+const TEAM_VENUE = {
+  "Canadá|Sudáfrica":                    "Los Ángeles",
+  "Brasil|Japón":                        "Houston",
+  "Alemania|Paraguay":                   "Boston",
+  "Países Bajos|Marruecos":             "Monterrey",
+  "Costa de Marfil|Noruega":            "Dallas",
+  "Francia|Suecia":                      "Nueva York",
+  "México|Ecuador":                      "Ciudad de México",
+  "Inglaterra|RD del Congo":            "Atlanta",
+  "Bélgica|Senegal":                     "Seattle",
+  "Estados Unidos|Bosnia y Herzegovina": "San Francisco",
+  "España|Austria":                      "Los Ángeles",
+  "Portugal|Croacia":                    "Toronto",
+  "Suiza|Argelia":                       "Vancouver",
+  "Australia|Egipto":                    "Dallas",
+  "Argentina|Cabo Verde":               "Miami",
+  "Colombia|Ghana":                      "Kansas City",
+};
+
+function matchVenue(m) {
+  return m.venue ?? TEAM_VENUE[`${m.home}|${m.away}`];
 }
 
 // notas por partido: { matchId: "texto" }. Se limpian cuando el día se cierra.
@@ -1189,6 +1217,7 @@ function renderMatches() {
         ${!dateLocked && locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
         <span class="m-teams">${homeHtml}${m.recHome ? ` <span class="m-rec">(${esc(m.recHome)})</span>` : ""} <span class="dash">vs</span> ${awayHtml}${m.recAway ? ` <span class="m-rec">(${esc(m.recAway)})</span>` : ""}</span>
+        ${matchVenue(m) ? `<span class="m-venue">@ ${esc(matchVenue(m))}</span>` : ""}
         ${!locked && matchKo(m) ? `<span class="kickoff-cd" data-ko="${matchKo(m)}"></span>` : ""}
         ${m.stat ? `<span class="m-note">📊 ${esc(m.stat)}</span>` : ""}
         ${MATCH_NOTES[m.id] ? `<span class="m-note">🧮 ${MATCH_NOTES[m.id]}</span>` : ""}
