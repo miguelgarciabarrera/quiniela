@@ -166,10 +166,6 @@
 
   /* 🍳 se está cocinando */
   #cookingStrip:not(:empty) { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
-  .cook-title {
-    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 13px;
-    text-transform: uppercase; letter-spacing: 1px; color: var(--hot);
-  }
   .cook-card {
     border: 1px solid #5a2615; border-radius: 12px; padding: 10px 14px;
     background: linear-gradient(100deg, #1c1108, #140d09);
@@ -1391,7 +1387,7 @@ function renderCooking() {
   const cards = cooking.map(m => {
     const r = state.results[m.id];
     const hasScore = r && r[0] !== "" && r[1] !== "" && r[0] != null && r[1] != null;
-    const head = `<div class="cook-head"><span class="cook-live">● EN VIVO</span> <b>${esc(m.home)}</b> <span class="cook-score">${hasScore ? `${r[0]}–${r[1]}` : "–"}</span> <b>${esc(m.away)}</b> <span class="cook-if">${hasScore ? "si así queda" : "sin marcador aún"}</span></div>`;
+    const head = `<div class="cook-head"><span class="cook-live">● EN VIVO</span> <b>${esc(m.home)}</b> <span class="cook-score">${hasScore ? `${r[0]}–${r[1]}` : "–"}</span> <b>${esc(m.away)}</b>${hasScore ? ` <span class="cook-if">si así queda</span>` : ""}</div>`;
     let row = "";
     if (hasScore) {
       const chips = state.players.map((n, i) => {
@@ -1407,7 +1403,7 @@ function renderCooking() {
     }
     return `<div class="cook-card">${head}${row}</div>`;
   }).join("");
-  el.innerHTML = `<div class="cook-title">🍳 Se está cocinando</div>${cards}`;
+  el.innerHTML = cards;
 }
 
 function renderAll() {
