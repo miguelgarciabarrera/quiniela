@@ -637,53 +637,70 @@ const KICKOFFS = {
   m72: Date.UTC(2026,5,28, 5, 0), // Jordania-Argentina    10pm PT
 };
 
-// 16vos de Final: lookup por Local|Visitante (nombres en español) → UTC ms
-// Fuente: ESPN/NBC, todos los horarios en ET (UTC-4 en verano)
+// 16vos de Final: horario, sede y número oficial FIFA por Local|Visitante
+// Fuente: Wikipedia – 2026 FIFA World Cup knockout stage
+// Tiempos en UTC; offsets usados: ET=UTC-4, CT/CDT=UTC-5, MT=UTC-6, PT=UTC-7
 const TEAM_KO = {
-  "Brasil|Japón":                        Date.UTC(2026, 5, 29, 17,  0), // Lun 29 Jun  1pm ET
-  "Alemania|Paraguay":                   Date.UTC(2026, 5, 29, 20, 30), // Lun 29 Jun  4:30pm ET
-  "Países Bajos|Marruecos":             Date.UTC(2026, 5, 30,  1,  0), // Lun 29 Jun  9pm ET
-  "Costa de Marfil|Noruega":            Date.UTC(2026, 5, 30, 17,  0), // Mar 30 Jun  1pm ET
-  "Francia|Suecia":                      Date.UTC(2026, 5, 30, 21,  0), // Mar 30 Jun  5pm ET
-  "México|Ecuador":                      Date.UTC(2026, 6,  1,  1,  0), // Mar 30 Jun  9pm ET
-  "Inglaterra|RD del Congo":            Date.UTC(2026, 6,  1, 16,  0), // Mié  1 Jul 12pm ET
-  "Bélgica|Senegal":                     Date.UTC(2026, 6,  1, 20,  0), // Mié  1 Jul  4pm ET
-  "Estados Unidos|Bosnia y Herzegovina": Date.UTC(2026, 6,  2,  0,  0), // Mié  1 Jul  8pm ET
-  "España|Austria":                      Date.UTC(2026, 6,  2, 19,  0), // Jue  2 Jul  3pm ET
-  "Portugal|Croacia":                    Date.UTC(2026, 6,  2, 23,  0), // Jue  2 Jul  7pm ET
-  "Suiza|Argelia":                       Date.UTC(2026, 6,  3,  3,  0), // Jue  2 Jul 11pm ET
-  "Australia|Egipto":                    Date.UTC(2026, 6,  3, 18,  0), // Vie  3 Jul  2pm ET
-  "Argentina|Cabo Verde":               Date.UTC(2026, 6,  3, 22,  0), // Vie  3 Jul  6pm ET
-  "Colombia|Ghana":                      Date.UTC(2026, 6,  4,  1, 30), // Vie  3 Jul  9:30pm ET
+  "Alemania|Paraguay":                   Date.UTC(2026, 5, 29, 20, 30), // #74  Lun 29 Jun  4:30pm ET
+  "Países Bajos|Marruecos":             Date.UTC(2026, 5, 30,  1,  0), // #75  Lun 29 Jun  7pm MT (Monterrey)
+  "Brasil|Japón":                        Date.UTC(2026, 5, 29, 17,  0), // #76  Lun 29 Jun 12pm CT (Houston)
+  "Francia|Suecia":                      Date.UTC(2026, 5, 30, 21,  0), // #77  Mar 30 Jun  5pm ET
+  "Costa de Marfil|Noruega":            Date.UTC(2026, 5, 30, 17,  0), // #78  Mar 30 Jun 12pm CT (Dallas)
+  "México|Ecuador":                      Date.UTC(2026, 6,  1,  1,  0), // #79  Mar 30 Jun  7pm MT (CDMX)
+  "Inglaterra|RD del Congo":            Date.UTC(2026, 6,  1, 16,  0), // #80  Mié  1 Jul 12pm ET
+  "Estados Unidos|Bosnia y Herzegovina": Date.UTC(2026, 6,  2,  0,  0), // #81  Mié  1 Jul  5pm PT
+  "Bélgica|Senegal":                     Date.UTC(2026, 6,  1, 20,  0), // #82  Mié  1 Jul  1pm PT (Seattle)
+  "Portugal|Croacia":                    Date.UTC(2026, 6,  2, 23,  0), // #83  Jue  2 Jul  7pm ET (Toronto)
+  "España|Austria":                      Date.UTC(2026, 6,  2, 19,  0), // #84  Jue  2 Jul 12pm PT
+  "Suiza|Argelia":                       Date.UTC(2026, 6,  3,  3,  0), // #85  Jue  2 Jul  8pm PT (Vancouver)
+  "Argentina|Cabo Verde":               Date.UTC(2026, 6,  3, 22,  0), // #86  Vie  3 Jul  6pm ET
+  "Colombia|Ghana":                      Date.UTC(2026, 6,  4,  1, 30), // #87  Vie  3 Jul  8:30pm CT (KC)
+  "Australia|Egipto":                    Date.UTC(2026, 6,  3, 18,  0), // #88  Vie  3 Jul  1pm CT (Dallas)
 };
 
-function matchKo(m) {
-  return KICKOFFS[m.id] ?? m.ko ?? TEAM_KO[`${m.home}|${m.away}`];
-}
+// Número oficial FIFA por Local|Visitante (para corregir la numeración automática)
+const TEAM_NUM = {
+  "Canadá|Sudáfrica":                    73,
+  "Alemania|Paraguay":                   74,
+  "Países Bajos|Marruecos":             75,
+  "Brasil|Japón":                        76,
+  "Francia|Suecia":                      77,
+  "Costa de Marfil|Noruega":            78,
+  "México|Ecuador":                      79,
+  "Inglaterra|RD del Congo":            80,
+  "Estados Unidos|Bosnia y Herzegovina": 81,
+  "Bélgica|Senegal":                     82,
+  "Portugal|Croacia":                    83,
+  "España|Austria":                      84,
+  "Suiza|Argelia":                       85,
+  "Argentina|Cabo Verde":               86,
+  "Colombia|Ghana":                      87,
+  "Australia|Egipto":                    88,
+};
 
-// 16vos de Final: ciudad sede por Local|Visitante
+// Ciudad sede por Local|Visitante
 const TEAM_VENUE = {
   "Canadá|Sudáfrica":                    "Los Ángeles",
-  "Brasil|Japón":                        "Houston",
   "Alemania|Paraguay":                   "Boston",
   "Países Bajos|Marruecos":             "Monterrey",
-  "Costa de Marfil|Noruega":            "Dallas",
+  "Brasil|Japón":                        "Houston",
   "Francia|Suecia":                      "Nueva York",
+  "Costa de Marfil|Noruega":            "Dallas",
   "México|Ecuador":                      "Ciudad de México",
   "Inglaterra|RD del Congo":            "Atlanta",
-  "Bélgica|Senegal":                     "Seattle",
   "Estados Unidos|Bosnia y Herzegovina": "San Francisco",
-  "España|Austria":                      "Los Ángeles",
+  "Bélgica|Senegal":                     "Seattle",
   "Portugal|Croacia":                    "Toronto",
+  "España|Austria":                      "Los Ángeles",
   "Suiza|Argelia":                       "Vancouver",
-  "Australia|Egipto":                    "Dallas",
   "Argentina|Cabo Verde":               "Miami",
   "Colombia|Ghana":                      "Kansas City",
+  "Australia|Egipto":                    "Dallas",
 };
 
-function matchVenue(m) {
-  return m.venue ?? TEAM_VENUE[`${m.home}|${m.away}`];
-}
+function matchKo(m)    { return KICKOFFS[m.id] ?? m.ko ?? TEAM_KO[`${m.home}|${m.away}`]; }
+function matchVenue(m) { return m.venue ?? TEAM_VENUE[`${m.home}|${m.away}`]; }
+function matchNum(m)   { return TEAM_NUM[`${m.home}|${m.away}`] ?? m.num; }
 
 // notas por partido: { matchId: "texto" }. Se limpian cuando el día se cierra.
 const MATCH_NOTES = {};
@@ -1213,7 +1230,7 @@ function renderMatches() {
         else awayHtml = `<span class="winner">${awayHtml} 🏆</span>`;
       }
       html += `<tr><td class="match-cell">
-        <span class="m-num">#${m.num}</span> <span class="m-group">${esc(m.group)}</span>
+        <span class="m-num">#${matchNum(m)}</span> <span class="m-group">${esc(m.group)}</span>
         ${!dateLocked && locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
         <span class="m-teams">${homeHtml}${m.recHome ? ` <span class="m-rec">(${esc(m.recHome)})</span>` : ""} <span class="dash">vs</span> ${awayHtml}${m.recAway ? ` <span class="m-rec">(${esc(m.recAway)})</span>` : ""}</span>
