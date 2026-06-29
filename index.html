@@ -633,12 +633,36 @@ const KICKOFFS = {
   m72: Date.UTC(2026,5,28, 5, 0), // Jordania-Argentina    10pm PT
 };
 
+// 16vos de Final: lookup por Local|Visitante (nombres en español) → UTC ms
+// Fuente: ESPN/NBC, todos los horarios en ET (UTC-4 en verano)
+const TEAM_KO = {
+  "Brasil|Japón":                        Date.UTC(2026, 5, 29, 17,  0), // Lun 29 Jun  1pm ET
+  "Alemania|Paraguay":                   Date.UTC(2026, 5, 29, 20, 30), // Lun 29 Jun  4:30pm ET
+  "Países Bajos|Marruecos":             Date.UTC(2026, 5, 30,  1,  0), // Lun 29 Jun  9pm ET
+  "Costa de Marfil|Noruega":            Date.UTC(2026, 5, 30, 17,  0), // Mar 30 Jun  1pm ET
+  "Francia|Suecia":                      Date.UTC(2026, 5, 30, 21,  0), // Mar 30 Jun  5pm ET
+  "México|Ecuador":                      Date.UTC(2026, 6,  1,  1,  0), // Mar 30 Jun  9pm ET
+  "Inglaterra|RD del Congo":            Date.UTC(2026, 6,  1, 16,  0), // Mié  1 Jul 12pm ET
+  "Bélgica|Senegal":                     Date.UTC(2026, 6,  1, 20,  0), // Mié  1 Jul  4pm ET
+  "Estados Unidos|Bosnia y Herzegovina": Date.UTC(2026, 6,  2,  0,  0), // Mié  1 Jul  8pm ET
+  "España|Austria":                      Date.UTC(2026, 6,  2, 19,  0), // Jue  2 Jul  3pm ET
+  "Portugal|Croacia":                    Date.UTC(2026, 6,  2, 23,  0), // Jue  2 Jul  7pm ET
+  "Suiza|Argelia":                       Date.UTC(2026, 6,  3,  3,  0), // Jue  2 Jul 11pm ET
+  "Australia|Egipto":                    Date.UTC(2026, 6,  3, 18,  0), // Vie  3 Jul  2pm ET
+  "Argentina|Cabo Verde":               Date.UTC(2026, 6,  3, 22,  0), // Vie  3 Jul  6pm ET
+  "Colombia|Ghana":                      Date.UTC(2026, 6,  4,  1, 30), // Vie  3 Jul  9:30pm ET
+};
+
+function matchKo(m) {
+  return KICKOFFS[m.id] ?? m.ko ?? TEAM_KO[`${m.home}|${m.away}`];
+}
+
 // notas por partido: { matchId: "texto" }. Se limpian cuando el día se cierra.
 const MATCH_NOTES = {};
 
 function isLocked(m) {
   if (LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id)) return true;
-  const ko = KICKOFFS[m.id] ?? m.ko;
+  const ko = matchKo(m);
   return ko !== undefined && Date.now() >= ko;
 }
 
@@ -1165,8 +1189,7 @@ function renderMatches() {
         ${!dateLocked && locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
         <span class="m-teams">${homeHtml}${m.recHome ? ` <span class="m-rec">(${esc(m.recHome)})</span>` : ""} <span class="dash">vs</span> ${awayHtml}${m.recAway ? ` <span class="m-rec">(${esc(m.recAway)})</span>` : ""}</span>
-        ${!locked && (KICKOFFS[m.id] ?? m.ko) ? `<span class="kickoff-cd" data-ko="${KICKOFFS[m.id] ?? m.ko}"></span>` : ""}
-        ${m.extra && !locked ? `<input type="datetime-local" class="ko-inline" value="${m.ko ? new Date(m.ko - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : ''}" onchange="setMatchKo('${m.id}', this.value)" title="Hora de inicio (cierre automático)">` : ""}
+        ${!locked && matchKo(m) ? `<span class="kickoff-cd" data-ko="${matchKo(m)}"></span>` : ""}
         ${m.stat ? `<span class="m-note">📊 ${esc(m.stat)}</span>` : ""}
         ${MATCH_NOTES[m.id] ? `<span class="m-note">🧮 ${MATCH_NOTES[m.id]}</span>` : ""}
       </td>`;
@@ -1626,8 +1649,8 @@ setInterval(updateCountdowns, 30000);
 // Re-renderiza automáticamente cuando arranca el siguiente partido para cerrar sus inputs
 function scheduleKickoffRedraw() {
   const now = Date.now();
-  const extraKos = state.extraMatches.map(m => m.ko).filter(Boolean);
-  const next = [...Object.values(KICKOFFS), ...extraKos].filter(t => t > now).sort((a, b) => a - b)[0];
+  const extraKos = state.extraMatches.map(m => matchKo(m)).filter(Boolean);
+  const next = [...Object.values(KICKOFFS), ...Object.values(TEAM_KO), ...extraKos].filter(t => t > now).sort((a, b) => a - b)[0];
   if (next) setTimeout(() => { renderMatches(); scheduleKickoffRedraw(); }, next - now + 1500);
 }
 scheduleKickoffRedraw();
