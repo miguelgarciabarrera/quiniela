@@ -1193,8 +1193,10 @@ function renderMatches() {
     }
     html += `</table></div></div>`;
   }
+  const scrollPositions = [...document.querySelectorAll('#matchList [style*="overflow-x"]')].map(el => el.scrollLeft);
   document.getElementById("matchList").innerHTML = html ||
     `<p style="color:var(--muted)">Aquí no hay nada. O ya juzgaste todos los partidos o ninguno — las dos cosas dicen algo de ti. 🤷</p>`;
+  document.querySelectorAll('#matchList [style*="overflow-x"]').forEach((el, i) => { if (scrollPositions[i]) el.scrollLeft = scrollPositions[i]; });
 }
 
 function renderAll() {
