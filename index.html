@@ -1087,7 +1087,7 @@ function scorePick(pick, result) {
 }
 
 function totals() {
-  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0, bonus: 0, hot: 0, streak: 0 }));
+  const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0, bonus: 0, streak: 0 }));
   for (const m of allMatches()) {
     const result = state.results[m.id];
     const dr = state.defResults[m.id]; // cómo se definió (sólo eliminatorias)
@@ -1102,16 +1102,17 @@ function totals() {
       if (dr && (state.defs[m.id] || {})[i] === dr) { t[i].pts += 1; t[i].bonus++; } // acertó 90'/alargue/penales
     });
   }
-  // 🔥 racha que quema: +1 por cada partido que sostiene una racha de aciertos (E o C) de 3+
+  // 🔥 racha viva: aciertos (E o C) consecutivos hasta el último partido juzgado.
+  // SOLO cosmético: NO suma puntos (sumarlo reescribía retroactivamente toda la tabla).
   const judged = allMatches().filter(m => state.results[m.id]).sort((a, b) => a.num - b.num);
   state.players.forEach((_, i) => {
     let run = 0;
     for (const m of judged) {
       const s = VETOED_PICKS[m.id]?.has(i) ? null : scorePick((state.picks[m.id] || {})[i], state.results[m.id]);
-      if (s === 5 || s === 3) { run++; if (run >= 3) { t[i].pts += 1; t[i].hot += 1; } }
+      if (s === 5 || s === 3) run++;
       else run = 0;
     }
-    t[i].streak = run; // racha viva (aciertos consecutivos hasta el último partido juzgado)
+    t[i].streak = run;
   });
   return t;
 }
@@ -1153,7 +1154,7 @@ function renderLeaderboard() {
         <span class="lb-pts">${p.pts}</span>
       </div>
       <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
-      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus 🏟️` : ""}${p.hot ? ` <span class="sep">·</span> ${p.hot} 🔥` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
+      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus 🏟️` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
       <span class="lb-detail">racha ${formLine(p.idx)}</span>
     </div>`;
   }).join("");
