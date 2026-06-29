@@ -555,6 +555,7 @@
     <input id="addGroup" placeholder="Fase (ej. 16vos)" size="10">
     <input id="addHome" placeholder="Local" size="14">
     <input id="addAway" placeholder="Visitante" size="14">
+    <input id="addKo" type="datetime-local" title="Hora de inicio (cierre automático de pronósticos)">
     <button onclick="addMatch()">Agregar</button>
   </div>
 
@@ -632,7 +633,7 @@ const MATCH_NOTES = {};
 
 function isLocked(m) {
   if (LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id)) return true;
-  const ko = KICKOFFS[m.id];
+  const ko = KICKOFFS[m.id] ?? m.ko;
   return ko !== undefined && Date.now() >= ko;
 }
 
@@ -1159,7 +1160,7 @@ function renderMatches() {
         ${!dateLocked && locked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
         <span class="m-teams">${homeHtml}${m.recHome ? ` <span class="m-rec">(${esc(m.recHome)})</span>` : ""} <span class="dash">vs</span> ${awayHtml}${m.recAway ? ` <span class="m-rec">(${esc(m.recAway)})</span>` : ""}</span>
-        ${!locked && KICKOFFS[m.id] ? `<span class="kickoff-cd" data-ko="${KICKOFFS[m.id]}"></span>` : ""}
+        ${!locked && (KICKOFFS[m.id] ?? m.ko) ? `<span class="kickoff-cd" data-ko="${KICKOFFS[m.id] ?? m.ko}"></span>` : ""}
         ${m.stat ? `<span class="m-note">📊 ${esc(m.stat)}</span>` : ""}
         ${MATCH_NOTES[m.id] ? `<span class="m-note">🧮 ${MATCH_NOTES[m.id]}</span>` : ""}
       </td>`;
@@ -1437,11 +1438,15 @@ function addMatch() {
   const group = document.getElementById("addGroup").value.trim() || "Elim";
   const home = document.getElementById("addHome").value.trim();
   const away = document.getElementById("addAway").value.trim();
+  const koRaw = document.getElementById("addKo").value;
   if (!date || !home || !away) { alert("Fecha, local y visitante son obligatorios. Hasta la FIFA tiene estándares. Apenas."); return; }
   const num = 72 + state.extraMatches.length + 1;
-  state.extraMatches.push({ id: "x" + Date.now(), num, date, group, home, away, extra: true });
-  ["addDate", "addGroup", "addHome", "addAway"].forEach(id => document.getElementById(id).value = "");
-  save(); renderMatches();
+  const id = "x" + Date.now();
+  const match = { id, num, date, group, home, away, extra: true };
+  if (koRaw) match.ko = new Date(koRaw).getTime();
+  state.extraMatches.push(match);
+  ["addDate", "addGroup", "addHome", "addAway", "addKo"].forEach(id => document.getElementById(id).value = "");
+  save(); renderMatches(); scheduleKickoffRedraw();
 }
 
 function removeMatch(id) {
@@ -1605,11 +1610,13 @@ function updateCountdowns() {
 setInterval(updateCountdowns, 30000);
 
 // Re-renderiza automáticamente cuando arranca el siguiente partido para cerrar sus inputs
-(function scheduleKickoffRedraw() {
+function scheduleKickoffRedraw() {
   const now = Date.now();
-  const next = Object.values(KICKOFFS).filter(t => t > now).sort((a, b) => a - b)[0];
+  const extraKos = state.extraMatches.map(m => m.ko).filter(Boolean);
+  const next = [...Object.values(KICKOFFS), ...extraKos].filter(t => t > now).sort((a, b) => a - b)[0];
   if (next) setTimeout(() => { renderMatches(); scheduleKickoffRedraw(); }, next - now + 1500);
-})();
+}
+scheduleKickoffRedraw();
 
 // Scroll-aware header: transparent when hero is in view, photo-bg once scrolled past it
 (function () {
