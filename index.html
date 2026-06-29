@@ -383,6 +383,11 @@
   td.pts-0 .pts-badge { color: var(--red-b); }
 
   /* eliminatorias: control segmentado "¿Cómo se define?" (90'/alargue/penales) */
+  .ko-inline {
+    display: block; margin-top: 5px;
+    background: var(--panel2); color: var(--muted); font-family: inherit; font-size: 11px;
+    border: 1px dashed var(--border); border-radius: 6px; padding: 3px 6px; width: 100%;
+  }
   .def-q {
     display: block; margin-top: 9px; font-size: 9px; font-weight: 700;
     letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
@@ -1161,6 +1166,7 @@ function renderMatches() {
         ${m.extra ? `<button class="del-btn" onclick="removeMatch('${m.id}')" title="Quitar partido">✕</button>` : ""}<br>
         <span class="m-teams">${homeHtml}${m.recHome ? ` <span class="m-rec">(${esc(m.recHome)})</span>` : ""} <span class="dash">vs</span> ${awayHtml}${m.recAway ? ` <span class="m-rec">(${esc(m.recAway)})</span>` : ""}</span>
         ${!locked && (KICKOFFS[m.id] ?? m.ko) ? `<span class="kickoff-cd" data-ko="${KICKOFFS[m.id] ?? m.ko}"></span>` : ""}
+        ${m.extra && !locked ? `<input type="datetime-local" class="ko-inline" value="${m.ko ? new Date(m.ko - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : ''}" onchange="setMatchKo('${m.id}', this.value)" title="Hora de inicio (cierre automático)">` : ""}
         ${m.stat ? `<span class="m-note">📊 ${esc(m.stat)}</span>` : ""}
         ${MATCH_NOTES[m.id] ? `<span class="m-note">🧮 ${MATCH_NOTES[m.id]}</span>` : ""}
       </td>`;
@@ -1447,6 +1453,13 @@ function addMatch() {
   if (koRaw) match.ko = new Date(koRaw).getTime();
   state.extraMatches.push(match);
   ["addDate", "addGroup", "addHome", "addAway", "addKo"].forEach(id => document.getElementById(id).value = "");
+  save(); renderMatches(); scheduleKickoffRedraw();
+}
+
+function setMatchKo(id, val) {
+  const m = state.extraMatches.find(x => x.id === id);
+  if (!m) return;
+  m.ko = val ? new Date(val).getTime() : undefined;
   save(); renderMatches(); scheduleKickoffRedraw();
 }
 
