@@ -592,7 +592,6 @@
     <div id="cookingStrip"></div>
     <div id="clasicoBanner"></div>
     <div class="stats-strip" id="statsStrip"></div>
-    <p class="rules">Marcador exacto = <b style="color:var(--green-b)">5 pts</b> <span class="sep">·</span> Cerca, solo el ganador o el empate = <b style="color:var(--yellow-b)">3 pts</b> <span class="sep">·</span> Fallo = <b>0 pts</b>. Escribe el resultado oficial en la columna dorada y la vergüenza se reparte solita.<br><span style="color:var(--muted)">🏟️ En eliminatorias el marcador es <b>a los 90′</b>. Bonus: adivina si se define en 90′, alargue o penales y suma <b style="color:var(--accent)">+1</b> (fallar no resta).</span></p>
   </div>
 </header>
 
@@ -1217,36 +1216,6 @@ function renderStats(ranked, anyPoints) {
     }
   }
 
-  // 🐎 Rebelde con causa: fue contra la manada y le atinó al resultado (la manada falló)
-  const outcomeOf = (a, b) => { const d = Math.sign(+a - +b); return d > 0 ? "H" : d < 0 ? "A" : "D"; };
-  const outcomeLbl = (o, m) => o === "H" ? m.home : o === "A" ? m.away : "empate";
-  let rebel = null;
-  for (const m of [...judged].sort((a, b) => a.num - b.num)) {
-    const r = state.results[m.id];
-    if (!r || r[0] === "" || r[1] === "" || r[0] == null || r[1] == null) continue;
-    const actual = outcomeOf(r[0], r[1]);
-    const votes = { H: 0, D: 0, A: 0 };
-    const picked = state.players.map((_, i) => {
-      if (VETOED_PICKS[m.id]?.has(i)) return null;
-      const p = (state.picks[m.id] || {})[i];
-      if (!p || p[0] === "" || p[1] === "" || p[0] == null || p[1] == null) return null;
-      const o = outcomeOf(p[0], p[1]); votes[o]++; return o;
-    });
-    const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
-    if (sorted[0][1] === 0) continue;                       // nadie jugó
-    if (sorted[0][1] === sorted[1][1]) continue;            // sin manada clara (empate de votos)
-    const herd = sorted[0][0];
-    if (herd === actual) continue;                          // la manada acertó: no hay héroe
-    const rebels = state.players.map((n, i) => ({ n, i })).filter(x => picked[x.i] === actual);
-    if (rebels.length) rebel = { m, herd, actual, rebels };
-  }
-  if (rebel) {
-    const names = rebel.rebels.map(x => `<b>${esc(x.n)}</b>`).join(" y ");
-    const verb = rebel.rebels.length > 1 ? "dijeron" : "dijo";
-    const know = rebel.rebels.length > 1 ? "saben algo que tú no" : "sabe algo que tú no";
-    chipEls.push(`<span class="stat-chip">🐎 Rebelde con causa: ${names} ${verb} <b>${esc(outcomeLbl(rebel.actual, rebel.m))}</b>, la manada ${esc(outcomeLbl(rebel.herd, rebel.m))}. ${rebel.rebels.length > 1 ? "Ellos" : esc(rebel.rebels[0].n)} ${know}.</span>`);
-  }
-
   const exactGamesFor = (idx) => judged
     .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id]) === 5)
     .sort((a, b) => a.num - b.num);
@@ -1345,8 +1314,8 @@ function renderPicks() {
 }
 
 // eliminatorias: cómo se define el partido (+1 si el jugador acierta)
-const DEF_OPTS = [["90", "90′"], ["et", "Alargue"], ["pen", "Penales"]];
-const DEF_LABELS = { "90": "90′", et: "Alargue", pen: "Penales" };
+const DEF_OPTS = [["90", "90′"], ["et", "Tiempo Extra"], ["pen", "Penales"]];
+const DEF_LABELS = { "90": "90′", et: "Tiempo Extra", pen: "Penales" };
 
 // control segmentado para el jugador i (o para La Realidad si i === null)
 function defControl(matchId, i) {
