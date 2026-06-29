@@ -1198,6 +1198,7 @@ function renderMatches() {
   document.getElementById("matchList").innerHTML = html ||
     `<p style="color:var(--muted)">Aquí no hay nada. O ya juzgaste todos los partidos o ninguno — las dos cosas dicen algo de ti. 🤷</p>`;
   document.querySelectorAll('#matchList [style*="overflow-x"]').forEach((el, i) => { if (scrollPositions[i]) el.scrollLeft = scrollPositions[i]; });
+  updateCountdowns();
 }
 
 function renderAll() {
