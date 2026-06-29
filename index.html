@@ -1192,30 +1192,6 @@ function renderStats(ranked, anyPoints) {
   const carnitasPayers = anyPoints ? ranked.filter(p => p.pts === lastPts) : [];
   const chipEls = [`<span class="stat-chip"><b>${judged.length}</b> partidos juzgados</span>`];
 
-  // 👑 Jugador de la Jornada: MVP de la fecha del último partido juzgado
-  const lastJudged = [...judged].sort((a, b) => b.num - a.num)[0];
-  if (lastJudged) {
-    const jDate = lastJudged.date;
-    const dayMatches = judged.filter(m => m.date === jDate);
-    const dayStat = state.players.map((_, i) => {
-      let pts = 0, ex = 0;
-      for (const m of dayMatches) {
-        if (VETOED_PICKS[m.id]?.has(i)) continue;
-        const s = scorePick((state.picks[m.id] || {})[i], state.results[m.id]);
-        if (s === 5) { pts += 5; ex++; } else if (s === 3) pts += 3;
-        if (state.defResults[m.id] && (state.defs[m.id] || {})[i] === state.defResults[m.id]) pts += 1;
-      }
-      return { pts, ex };
-    });
-    const maxDay = Math.max(...dayStat.map(d => d.pts));
-    if (maxDay > 0) {
-      const mvps = state.players.map((n, i) => ({ n, i })).filter(x => dayStat[x.i].pts === maxDay);
-      const names = mvps.map(x => `<b>${esc(x.n)}</b>`).join(" y ");
-      const exTxt = mvps.length === 1 && dayStat[mvps[0].i].ex ? ` · ${dayStat[mvps[0].i].ex} exacto${dayStat[mvps[0].i].ex > 1 ? "s" : ""}` : "";
-      chipEls.push(`<span class="stat-chip">👑 Jugador de la Jornada (${esc(jDate)}): ${names} · ${maxDay} pts${exTxt}</span>`);
-    }
-  }
-
   const exactGamesFor = (idx) => judged
     .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id]) === 5)
     .sort((a, b) => a.num - b.num);
