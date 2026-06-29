@@ -640,14 +640,14 @@ function isLocked(m) {
 // los términos más específicos primero porque "octavos de final" contiene "final".
 function roundTheme(group) {
   const g = (group || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-  if (g.includes("octav") || g.includes("8vo")) return { cls: "roct",     sub: "el que pestañea, se va" };
-  if (g.includes("cuart") || g.includes("4to")) return { cls: "rcuartos", sub: "ocho llegaron, cuatro lloran" };
-  if (g.includes("semi"))                        return { cls: "rsemis",   sub: "a un paso de la gloria" };
-  if (g.includes("tercer") || g.includes("3er") || g.includes("3r")) return { cls: "rtercero", sub: "el duelo que nadie quería jugar" };
-  if (g.includes("16"))                          return { cls: "r16",      sub: "ya no hay margen de error" };
-  if (g.includes("32"))                          return { cls: "r32",      sub: "se acabaron los empates" };
-  if (g.includes("final"))                       return { cls: "rfinal",   sub: "el último baile: todo o nada" };
-  return { cls: "", sub: "el que pierde, se va a casa" };
+  if (g.includes("tercer") || g.includes("3er") || g.includes("3r")) return { cls: "rtercero", label: "Tercer Lugar",      sub: "el duelo que nadie quería jugar" };
+  if (g.includes("semi"))                        return { cls: "rsemis",   label: "Semifinales",        sub: "a un paso de la gloria" };
+  if (g.includes("cuart") || g.includes("4to")) return { cls: "rcuartos", label: "Cuartos de Final",   sub: "ocho llegaron, cuatro lloran" };
+  if (g.includes("octav") || g.includes("8vo") || g.includes("16vo")) return { cls: "roct", label: "Octavos de Final", sub: "el que pestañea, se va" };
+  if (g.includes("32vo") || g.includes("16"))   return { cls: "r16",      label: "16vos de Final",     sub: "ya no hay margen de error" };
+  if (g.includes("32"))                          return { cls: "r16",      label: "16vos de Final",     sub: "ya no hay margen de error" };
+  if (g.includes("final"))                       return { cls: "rfinal",   label: "La Gran Final",      sub: "el último baile: todo o nada" };
+  return { cls: "", label: group, sub: "el que pierde, se va a casa" };
 }
 
 // candidatas a la Decepción: favoritas que prometen y fallan.
@@ -1136,7 +1136,7 @@ function renderMatches() {
       const theme = roundTheme(koMatch.group);
       html += `<div class="phase-banner ${theme.cls}">
         <span class="pb-round">Eliminatorias</span>
-        <span class="pb-title">${esc(koMatch.group)}</span>
+        <span class="pb-title">${esc(theme.label)}</span>
         <span class="pb-sub">${theme.sub}</span>
       </div>`;
     }
