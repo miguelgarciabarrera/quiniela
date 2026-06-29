@@ -164,18 +164,6 @@
     padding: 1px 7px; margin-left: 6px; letter-spacing: .3px; white-space: nowrap;
   }
 
-  /* 🌶️ El Clásico */
-  .clasico-banner {
-    margin-top: 12px; padding: 10px 16px; border-radius: 12px;
-    background: linear-gradient(100deg, #2a0d18, #1a0a10);
-    border: 1px solid #5a1e34; color: var(--text); font-size: 15px;
-  }
-  .clasico-banner .clasico-label {
-    font-family: "Space Grotesk", sans-serif; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .6px; color: #ff8db0; margin-right: 4px;
-  }
-  .clasico-banner b { color: var(--text); }
-
   /* 🍳 se está cocinando */
   #cookingStrip:not(:empty) { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
   .cook-title {
@@ -590,7 +578,6 @@
     <p class="tagline" id="tagline"></p>
     <div class="leaderboard" id="leaderboard"></div>
     <div id="cookingStrip"></div>
-    <div id="clasicoBanner"></div>
     <div class="stats-strip" id="statsStrip"></div>
   </div>
 </header>
@@ -1157,24 +1144,7 @@ function renderLeaderboard() {
       <span class="lb-detail">racha ${formLine(p.idx)}</span>
     </div>`;
   }).join("");
-  document.getElementById("clasicoBanner").innerHTML = clasicoHtml(ranked, anyPoints);
   renderStats(ranked, anyPoints);
-}
-
-// 🌶️ El Clásico: el par adyacente en la tabla con menor diferencia de puntos.
-// En empates de diferencia gana el par más arriba (la pelea por el trono pesa más).
-function clasicoHtml(ranked, anyPoints) {
-  if (!anyPoints || ranked.length < 2) return "";
-  let best = null;
-  for (let i = 0; i < ranked.length - 1; i++) {
-    const gap = ranked[i].pts - ranked[i + 1].pts;
-    if (best === null || gap < best.gap) best = { gap, a: ranked[i], b: ranked[i + 1] };
-  }
-  if (!best) return "";
-  const tail = best.gap === 0
-    ? `empatados a ${best.a.pts}, esto es personal`
-    : `a ${best.gap} ${best.gap === 1 ? "punto" : "puntos"}, esto es personal`;
-  return `<div class="clasico-banner">🌶️ <span class="clasico-label">El Clásico</span> <b>${esc(best.a.name)}</b> vs <b>${esc(best.b.name)}</b> — ${tail}</div>`;
 }
 
 function renderStats(ranked, anyPoints) {
