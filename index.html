@@ -1140,7 +1140,7 @@ function renderLeaderboard() {
         <span class="lb-pts">${p.pts}</span>
       </div>
       <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
-      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus 🏟️` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
+      <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
       <span class="lb-detail">racha ${formLine(p.idx)}</span>
     </div>`;
   }).join("");
@@ -1160,7 +1160,7 @@ function renderStats(ranked, anyPoints) {
   const snipers = anyPoints && maxExact > 0 ? ranked.filter(p => p.exact === maxExact) : [];
   const lastPts = anyPoints ? ranked[ranked.length - 1].pts : null;
   const carnitasPayers = anyPoints ? ranked.filter(p => p.pts === lastPts) : [];
-  const chipEls = [`<span class="stat-chip"><b>${judged.length}</b> partidos juzgados</span>`];
+  const chipEls = [`<span class="stat-chip">⚽ <b>${judged.length}</b> partidos juzgados</span>`];
 
   const exactGamesFor = (idx) => judged
     .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id]) === 5)
@@ -1362,7 +1362,7 @@ function renderMatches() {
           <input type="number" min="0" max="99" value="${r[1]}" ${resultDis} onchange="setResult('${m.id}',1,this.value)">
         </span>
         ${m.extra ? defControl(m.id, null) : ""}
-        ${sealed ? `<span class="seal-tag">🔒 sellado</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
+        ${sealed ? `<span class="seal-tag">🔒 Cerrado</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
       </td></tr>`;
     }
     html += `</table></div></div>`;
@@ -1828,10 +1828,10 @@ function updateCountdowns() {
   });
   document.querySelectorAll(".seal-cd[data-seal]").forEach(el => {
     const diff = +el.dataset.seal - now;
-    if (diff <= 0) { el.textContent = "🔒 sellando…"; return; }
+    if (diff <= 0) { el.textContent = "🔒 Cerrando…"; return; }
     const min = Math.floor(diff / 60000);
     const sec = Math.floor((diff % 60000) / 1000);
-    el.textContent = min >= 1 ? `🔒 se sella en ${min} min` : `🔒 se sella en ${sec}s`;
+    el.textContent = min >= 1 ? `🔒 se cierra en ${min} min` : `🔒 se cierra en ${sec}s`;
   });
   renderCooking(); // refresca "en vivo" y abre/cierra el strip al cruzar kickoff
 }
