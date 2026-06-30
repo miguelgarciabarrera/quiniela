@@ -1628,6 +1628,7 @@ function setPenWinner(matchId, side) {
   state.penWinner = state.penWinner || {};
   if (state.penWinner[matchId] === side) delete state.penWinner[matchId]; // volver a tocar = quitar
   else state.penWinner[matchId] = side;
+  bumpRealitySeal(matchId); // arma el sellado: el empate no estaba "completo" sin el ganador de penales
   save(); renderLeaderboard(); renderMatches();
 }
 
