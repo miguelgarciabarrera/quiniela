@@ -426,6 +426,14 @@
   td.pts-5 .pts-badge { color: var(--green-b); }
   td.pts-3 .pts-badge { color: var(--yellow-b); }
   td.pts-0 .pts-badge { color: var(--red-b); }
+  /* comodín: el total de puntos va en una burbuja rellena, más grande, junto a la etiqueta */
+  .pts-amt {
+    display: inline-block; font-size: 14px; font-weight: 800; margin-left: 5px;
+    vertical-align: middle; border-radius: 999px; padding: 2px 9px; letter-spacing: .3px;
+  }
+  td.pts-5 .pts-amt { background: var(--green-b); color: #04130d; }
+  td.pts-3 .pts-amt { background: var(--yellow-b); color: #2a2006; }
+  td.pts-0 .pts-amt { background: var(--red-b); color: #2a0a0c; }
 
   /* eliminatorias: control segmentado "¿Cómo se define?" (90'/alargue/penales) */
   .ko-inline {
@@ -1427,11 +1435,9 @@ function renderMatches() {
         const cls = vetoed ? "pts-0" : (s === 5 ? "pts-5" : s === 3 ? "pts-3" : s === 0 ? "pts-0" : "");
         const badge = vetoed
           ? `<span class="pts-badge" style="color:var(--red-b)">🟨 Anulado</span>`
-          : (s !== null ? `<span class="pts-badge">${
-              s === 5 ? (armed ? "Golazo ×2 +10" : "Golazo +5")
-            : s === 3 ? (armed ? "Cerca ×2 +6" : "Cerca +3")
-            :           (armed ? "Pifia ×2 −3" : "Pifia +0")
-            }</span>` : "");
+          : (s === null ? "" : (armed
+              ? `<span class="pts-badge">${s === 5 ? "Golazo" : s === 3 ? "Cerca" : "Pifia"} ×2</span><span class="pts-amt">${s === 5 ? "+10" : s === 3 ? "+6" : "−3"}</span>`
+              : `<span class="pts-badge">${s === 5 ? "Golazo +5" : s === 3 ? "Cerca +3" : "Pifia +0"}</span>`));
         html += `<td class="${cls}">
           <span class="score-pair">
             <input type="number" min="0" max="99" value="${pick[0]}" ${vetoed ? "disabled" : dis} onchange="setPick('${m.id}',${i},0,this.value)">
