@@ -457,6 +457,17 @@
   }
   .def-badge.hit { color: var(--green-b); }
   .def-badge.miss { color: var(--muted); }
+  /* 🃏 comodín — doble o nada */
+  .comodin-btn, .comodin-armed {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+    font-family: "Space Grotesk", sans-serif; font-size: 10px; font-weight: 600;
+    border-radius: 6px; padding: 3px 8px; cursor: pointer; white-space: nowrap;
+  }
+  .comodin-btn { color: #d4b86a; background: transparent; border: 1px dashed #5a4a1e; }
+  .comodin-btn:hover:not([disabled]) { color: var(--gold); border-color: var(--gold); }
+  .comodin-btn[disabled] { color: #5f6b5f; border-style: solid; border-color: #2c3a32; cursor: not-allowed; }
+  .comodin-armed { color: #3a2a06; background: var(--gold); border: 1px solid var(--gold); font-weight: 700; }
+  td.comodin-cell { box-shadow: inset 0 0 0 2px var(--gold); }
 
   .add-form {
     display: none; gap: 8px; flex-wrap: wrap; align-items: center;
@@ -998,6 +1009,7 @@ function defaultState() {
     flops: {},                 // flops[playerIdx] = equipo decepción
     lastEdit: {},              // lastEdit[playerIdx] = timestamp (ms) del último cambio de sus pronósticos
     realitySealAt: {},         // realitySealAt[matchId] = epoch (ms) en que La Realidad se sella sola
+    comodin: {},               // comodin[playerIdx][date] = matchId con "Doble o nada" (1 por jornada, eliminatorias)
   };
 }
 
@@ -1092,10 +1104,12 @@ function totals() {
       if (VETOED_PICKS[m.id]?.has(i)) return; // anulado por el tribunal
       if (result) {
         const s = scorePick((state.picks[m.id] || {})[i], result, (state.penWinner || {})[m.id]);
-        if (s === 5) { t[i].pts += 5; t[i].exact++; }
-        else if (s === 3) { t[i].pts += 3; t[i].winner++; }
+        const armed = m.extra && (state.comodin?.[i] || {})[m.date] === m.id; // 🃏 doble o nada
+        if (s === 5) { t[i].pts += armed ? 10 : 5; t[i].exact++; }
+        else if (s === 3) { t[i].pts += armed ? 6 : 3; t[i].winner++; }
+        else if (s === 0 && armed) { t[i].pts -= 3; } // castigo del comodín en eliminatorias
       }
-      if (dr && (state.defs[m.id] || {})[i] === dr) { t[i].pts += 1; t[i].bonus++; } // acertó 90'/alargue/penales
+      if (dr && (state.defs[m.id] || {})[i] === dr) { t[i].pts += 1; t[i].bonus++; } // acertó 90'/alargue/penales (no se dobla)
     });
   }
   // 🔥 racha viva: aciertos (E o C) consecutivos hasta el último partido juzgado.
@@ -1294,6 +1308,44 @@ function defControl(matchId, i) {
   return `<span class="def-q">${isReal ? "Se definió en" : "¿Cómo se define?"}</span><span class="def-seg">${btns}</span>${tag}`;
 }
 
+// 🃏 Doble o nada: 1 comodín por jornada (fecha), opcional, sólo eliminatorias.
+// Acierto exacto 5→10, sólo ganador 3→6, fallo 0→−3. El bonus de definición no se dobla.
+function comodinControl(matchId, i) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!m || !m.extra) return "";
+  const mine = state.comodin?.[i] || {};
+  const armedHere = mine[m.date] === matchId;
+  const locked = isLocked(m);
+  if (armedHere) {
+    return locked
+      ? `<span class="comodin-armed" title="Comodín activado: puntos ×2 (−3 si falla)">🃏 ×2</span>`
+      : `<button class="comodin-armed" title="Quitar comodín" onclick="setComodin('${matchId}',${i})">🃏 ×2 ✕</button>`;
+  }
+  const otherId = mine[m.date];
+  const committed = otherId && (() => { const om = allMatches().find(x => x.id === otherId); return om && isLocked(om); })();
+  if (committed) return `<span class="comodin-btn" disabled title="Ya usaste tu comodín de hoy">🃏 usado hoy</span>`;
+  if (locked) return ""; // arrancó sin armar: ya no se puede
+  return `<button class="comodin-btn" title="Doble o nada: ×2 si aciertas, −3 si fallas. 1 por jornada." onclick="setComodin('${matchId}',${i})">🃏 Doble o nada</button>`;
+}
+
+function setComodin(matchId, i) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!m || !m.extra || isLocked(m)) { renderMatches(); return; }
+  state.comodin = state.comodin || {};
+  const mine = state.comodin[i] = state.comodin[i] || {};
+  const cur = mine[m.date];
+  if (cur === matchId) {
+    delete mine[m.date];
+    stampEdit(i, "quitó su 🃏 comodín");
+  } else {
+    if (cur) { const om = allMatches().find(x => x.id === cur); if (om && isLocked(om)) { toast("Ya jugaste tu comodín de hoy — ese partido ya arrancó."); renderMatches(); return; } }
+    mine[m.date] = matchId;
+    stampEdit(i, `🃏 comodín en [flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]`);
+  }
+  if (!Object.keys(mine).length) delete state.comodin[i];
+  save(); renderLeaderboard(); renderMatches(); renderActivity();
+}
+
 // eliminatorias empatadas: quién ganó la tanda de penales (define al que avanza).
 // Sólo aparece en La Realidad cuando el marcador quedó empatado.
 function penWinnerControl(matchId) {
@@ -1370,11 +1422,16 @@ function renderMatches() {
         const vetoed = !!(VETOED_PICKS[m.id]?.has(i));
         const pick = (state.picks[m.id] || {})[i] || ["", ""];
         const s = vetoed ? null : scorePick(pick, result, penWin);
+        const armed = !vetoed && m.extra && (state.comodin?.[i] || {})[m.date] === m.id; // 🃏
         const cls = vetoed ? "pts-0" : (s === 5 ? "pts-5" : s === 3 ? "pts-3" : s === 0 ? "pts-0" : "");
         const badge = vetoed
           ? `<span class="pts-badge" style="color:var(--red-b)">🟨 Anulado</span>`
-          : (s !== null ? `<span class="pts-badge">${s === 5 ? "Golazo +5" : s === 3 ? "Cerca +3" : "Pifia +0"}</span>` : "");
-        html += `<td class="${cls}">
+          : (s !== null ? `<span class="pts-badge">${
+              s === 5 ? (armed ? "Golazo ×2 +10" : "Golazo +5")
+            : s === 3 ? (armed ? "Cerca ×2 +6" : "Cerca +3")
+            :           (armed ? "Pifia ×2 −3" : "Pifia +0")
+            }</span>` : "");
+        html += `<td class="${cls}${armed ? " comodin-cell" : ""}">
           <span class="score-pair">
             <input type="number" min="0" max="99" value="${pick[0]}" ${vetoed ? "disabled" : dis} onchange="setPick('${m.id}',${i},0,this.value)">
             <span class="dash">–</span>
@@ -1382,6 +1439,7 @@ function renderMatches() {
           </span>
           ${badge}
           ${m.extra && !vetoed ? defControl(m.id, i) : ""}
+          ${m.extra && !vetoed ? comodinControl(m.id, i) : ""}
         </td>`;
       });
       const r = result || ["", ""];
@@ -1430,10 +1488,11 @@ function renderCooking() {
         if (VETOED_PICKS[m.id]?.has(i)) return "";
         const s = scorePick((state.picks[m.id] || {})[i], r, (state.penWinner || {})[m.id]);
         if (s === null) return "";
+        const armed = m.extra && (state.comodin?.[i] || {})[m.date] === m.id;
         const defOk = m.extra && state.defResults[m.id] && (state.defs[m.id] || {})[i] === state.defResults[m.id];
         const cls = s === 5 ? "pts-5" : s === 3 ? "pts-3" : "pts-0";
-        const tag = s === 5 ? "+5" : s === 3 ? "+3" : "+0";
-        return `<span class="cook-chip ${cls}">${esc(n)} ${tag}${defOk ? " 🏟️+1" : ""}</span>`;
+        const tag = s === 5 ? (armed ? "+10" : "+5") : s === 3 ? (armed ? "+6" : "+3") : (armed ? "−3" : "+0");
+        return `<span class="cook-chip ${cls}">${armed ? "🃏 " : ""}${esc(n)} ${tag}${defOk ? " 🏟️+1" : ""}</span>`;
       }).filter(Boolean).join("");
       if (chips) row = `<div class="cook-row">${chips}</div>`;
     }
