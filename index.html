@@ -467,6 +467,7 @@
   .comodin-btn:hover:not([disabled]) { color: var(--gold); border-color: var(--gold); }
   .comodin-btn[disabled] { color: #5f6b5f; border-style: solid; border-color: #2c3a32; cursor: not-allowed; }
   .comodin-armed { color: #3a2a06; background: var(--gold); border: 1px solid var(--gold); font-weight: 700; }
+  .comodin-hint { display: block; margin-top: 3px; font-size: 9px; line-height: 1.3; color: #c9b274; }
   td.comodin-cell { box-shadow: inset 0 0 0 2px var(--gold); }
 
   .add-form {
@@ -1317,9 +1318,10 @@ function comodinControl(matchId, i) {
   const armedHere = mine[m.date] === matchId;
   const locked = isLocked(m);
   if (armedHere) {
+    const hint = `<span class="comodin-hint">+10 si le clavas · +6 al ganador · −3 si fallas</span>`;
     return locked
-      ? `<span class="comodin-armed" title="Comodín activado: puntos ×2 (−3 si falla)">🃏 ×2</span>`
-      : `<button class="comodin-armed" title="Quitar comodín" onclick="setComodin('${matchId}',${i})">🃏 ×2 ✕</button>`;
+      ? `<span class="comodin-armed" title="Comodín activado: puntos ×2 (−3 si falla)">🃏 ×2</span>${hint}`
+      : `<button class="comodin-armed" title="Quitar comodín" onclick="setComodin('${matchId}',${i})">🃏 ×2 ✕</button>${hint}`;
   }
   const otherId = mine[m.date];
   const committed = otherId && (() => { const om = allMatches().find(x => x.id === otherId); return om && isLocked(om); })();
