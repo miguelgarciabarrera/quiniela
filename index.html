@@ -1318,7 +1318,7 @@ function comodinControl(matchId, i) {
   const armedHere = mine[m.date] === matchId;
   const locked = isLocked(m);
   if (armedHere) {
-    const hint = `<span class="comodin-hint">+10 si le clavas · +6 al ganador · −3 si fallas</span>`;
+    const hint = `<span class="comodin-hint">+10 si atinas todo · +6 solo ganador · −3 si fallas</span>`;
     return locked
       ? `<span class="comodin-armed" title="Comodín activado: puntos ×2 (−3 si falla)">🃏 ×2</span>${hint}`
       : `<button class="comodin-armed" title="Quitar comodín" onclick="setComodin('${matchId}',${i})">🃏 ×2 ✕</button>${hint}`;
