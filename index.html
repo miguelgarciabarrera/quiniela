@@ -157,16 +157,18 @@
   .rules { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
   .rules b { font-weight: 700; }
 
-  /* foto discreta de la tabla al entrar a cada jornada */
+  /* foto discreta de la tabla al entrar a cada jornada: cuelga del título del día */
+  .date-title.has-snap { border-bottom: none; padding-bottom: 4px; margin-bottom: 0; }
   .pre-standings {
-    margin: 20px 0 6px; padding: 7px 13px; border-radius: 8px;
-    background: #0e1513; border: 1px solid var(--border);
+    margin: 0 0 14px; padding: 8px 13px;
+    border: 2px solid var(--border); border-top: none;
+    border-radius: 0 0 9px 9px; background: #0e1513;
     display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 9px;
     font-size: 12px; color: var(--muted);
   }
   .pre-standings .pre-label {
     text-transform: uppercase; letter-spacing: .7px; font-size: 10px; font-weight: 700;
-    color: #6b7d72; margin-right: 3px;
+    color: #7d8f83; margin-right: 3px;
   }
   .pre-standings .pre-p { white-space: nowrap; }
   .pre-standings .pre-p b { color: var(--text); font-weight: 600; }
@@ -1442,18 +1444,20 @@ function renderMatches() {
         <span class="pb-sub">${theme.sub}</span>
       </div>`;
     }
-    // foto discreta de la tabla al entrar a esta jornada (desde SNAPSHOT_FROM_DATE)
+    // foto discreta de la tabla al entrar a esta jornada (desde SNAPSHOT_FROM_DATE),
+    // colgada bajo el título del día para que quede claro que es "antes de ESTE día"
+    let snapHtml = "";
     if (snapFromIdx >= 0 && dateIdx[date] >= snapFromIdx) {
       const before = totals(m => dateIdx[m.date] < dateIdx[date]);
       const snap = state.players.map((n, i) => ({ n, pts: before[i].pts })).sort((a, b) => b.pts - a.pts);
       if (snap.some(p => p.pts > 0)) {
-        html += `<div class="pre-standings"><span class="pre-label">Antes de esta jornada</span>` +
+        snapHtml = `<div class="pre-standings"><span class="pre-label">Al entrar a esta jornada</span>` +
           snap.map(p => `<span class="pre-p"><b>${esc(p.n)}</b> <span class="pre-pts">${p.pts}</span></span>`).join(`<span class="pre-dot">·</span>`) +
           `</div>`;
       }
     }
     const dateLocked = LOCKED_DATES.has(date);
-    html += `<div class="date-section"><div class="date-title">${esc(date)}${dateLocked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}</div>
+    html += `<div class="date-section"><div class="date-title${snapHtml ? " has-snap" : ""}">${esc(date)}${dateLocked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}</div>${snapHtml}
       <div style="overflow-x:auto"><table>
       <tr><th>Partido</th>${state.players.map(p => `<th>${esc(p)}</th>`).join("")}<th>🧑‍⚖️ La Realidad</th></tr>`;
     for (const m of matches) {
