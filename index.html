@@ -1496,7 +1496,7 @@ function renderMatches() {
         const badge = vetoed
           ? `<span class="pts-badge" style="color:var(--red-b)">🟨 Anulado</span>`
           : (s === null ? "" : (armed
-              ? `<span class="pts-badge">${s === 5 ? "Golazo" : s === 3 ? "Cerca" : "Pifia"} ×2</span><span class="pts-amt">${s === 5 ? "+10" : s === 3 ? "+6" : "−3"}</span>`
+              ? `<span class="pts-badge">${s === 5 ? "Golazo ×2" : s === 3 ? "Cerca ×2" : "Pifia"}</span><span class="pts-amt">${s === 5 ? "+10" : s === 3 ? "+6" : "−3"}</span>`
               : `<span class="pts-badge">${s === 5 ? "Golazo +5" : s === 3 ? "Cerca +3" : "Pifia +0"}</span>`));
         html += `<td class="${cls}">
           <span class="score-pair">
