@@ -176,6 +176,18 @@
     animation: cook-pulse 1.4s ease-in-out infinite;
   }
   @keyframes cook-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  /* ⛈️ demorado: mismo lenguaje visual que "EN VIVO" pero en tono tormenta */
+  #delayStrip:not(:empty) { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .delay-card {
+    border: 1px solid #3d5470; border-radius: 12px; padding: 10px 14px;
+    background: linear-gradient(100deg, #10161e, #0d1014);
+  }
+  .delay-head { font-size: 15px; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .delay-live {
+    font-size: 11px; font-weight: 700; letter-spacing: .6px; color: #78b0ff;
+    animation: cook-pulse 1.4s ease-in-out infinite;
+  }
+  .delay-info { font-size: 12px; color: var(--muted); font-style: italic; }
   .cook-score { font-weight: 800; font-size: 18px; color: var(--gold); }
   .cook-if { font-size: 12px; color: var(--muted); font-style: italic; }
   .cook-row { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -595,6 +607,7 @@
     <h1><span class="ball">⚽</span> Quiniela <span class="gold">Mundial 2026</span></h1>
     <p class="tagline" id="tagline"></p>
     <div class="leaderboard" id="leaderboard"></div>
+    <div id="delayStrip"></div>
     <div id="cookingStrip"></div>
     <div class="stats-strip" id="statsStrip"></div>
   </div>
@@ -1475,6 +1488,19 @@ function renderMatches() {
   updateCountdowns();
   scheduleRealitySeal();
   renderCooking();
+  renderDelays();
+}
+
+// ⛈️ Demorado: banner tipo "EN VIVO" para partidos aplazados (bandera m.delayed en la nube).
+// Desaparece solo cuando el partido se sella (ya se jugó) o se le quita la bandera.
+function renderDelays() {
+  const el = document.getElementById("delayStrip");
+  if (!el) return;
+  const delayed = allMatches().filter(m => m.delayed && !isRealitySealed(m));
+  if (!delayed.length) { el.innerHTML = ""; return; }
+  el.innerHTML = delayed.map(m =>
+    `<div class="delay-card"><div class="delay-head"><span class="delay-live">⛈️ DEMORADO</span> <b>${esc(m.home)}</b> <span class="dash">vs</span> <b>${esc(m.away)}</b>${m.delayInfo ? ` <span class="delay-info">${esc(m.delayInfo)}</span>` : ""}</div></div>`
+  ).join("");
 }
 
 // 🍳 Se está cocinando: partidos en juego (arrancaron, aún sin sellar) con el
@@ -1947,6 +1973,7 @@ function updateCountdowns() {
     el.textContent = min >= 1 ? `🔒 se cierra en ${min} min` : `🔒 se cierra en ${sec}s`;
   });
   renderCooking(); // refresca "en vivo" y abre/cierra el strip al cruzar kickoff
+  renderDelays();  // mantiene fresco el banner de demorado
 }
 setInterval(updateCountdowns, 30000);
 
