@@ -1496,7 +1496,11 @@ function renderMatches() {
 function renderDelays() {
   const el = document.getElementById("delayStrip");
   if (!el) return;
-  const delayed = allMatches().filter(m => m.delayed && !isRealitySealed(m));
+  const delayed = allMatches().filter(m => {
+    if (!m.delayed || isRealitySealed(m)) return false;
+    const ko = matchKo(m);
+    return !ko || Date.now() < ko; // sólo antes del (nuevo) arranque; al pitido lo toma "EN VIVO"
+  });
   if (!delayed.length) { el.innerHTML = ""; return; }
   el.innerHTML = delayed.map(m =>
     `<div class="delay-card"><div class="delay-head"><span class="delay-live">⛈️ DEMORADO</span> <b>${esc(m.home)}</b> <span class="dash">vs</span> <b>${esc(m.away)}</b>${m.delayInfo ? ` <span class="delay-info">${esc(m.delayInfo)}</span>` : ""}</div></div>`
