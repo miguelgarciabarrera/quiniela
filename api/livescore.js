@@ -57,31 +57,47 @@ export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   try {
     const dry = req.query?.dry === "1";
-    const events = (await fetchEspn()).filter(
-      (e) => (e.state === "in" || e.state === "post") &&
-             Number.isFinite(e.hs) && Number.isFinite(e.as)
-    );
+    const events = await fetchEspn();
+    const inPost = events.filter((e) => e.state === "in" || e.state === "post");
     const doc = await readDoc();
     if (!doc || !doc.state) return res.status(200).json({ updated: [], note: "sin estado" });
     const st = doc.state;
 
+    let changed = false;
     const updated = [];
     for (const m of st.extraMatches || []) {
       if (!m.extra) continue;
-      const ev = events.find((e) => toEN(m.home) === norm(e.home) && toEN(m.away) === norm(e.away));
-      if (!ev) continue;
-      // no tocar si ya está sellado (marcador final humano-confirmado)
-      const sealAt = (st.realitySealAt || {})[m.id];
-      if (sealAt != null && Date.now() >= sealAt) continue;
-      // en alargue/penales dejamos el marcador de los 90' quieto (lo fija el humano)
-      if (ev.period && ev.period > 2) continue;
-      const cur = (st.results || {})[m.id];
-      if (cur && +cur[0] === ev.hs && +cur[1] === ev.as) continue; // sin cambios
-      if (!dry) { st.results = st.results || {}; st.results[m.id] = [ev.hs, ev.as]; }
-      updated.push({ id: m.id, num: m.num, match: `${m.home} ${ev.hs}-${ev.as} ${m.away}`, state: ev.state });
+      const ev = inPost.find((e) => toEN(m.home) === norm(e.home) && toEN(m.away) === norm(e.away));
+      let mchg = false;
+
+      if (ev) {
+        // marcador: sólo tiempo reglamentario (period<=2), y no si ya está sellado.
+        // En alargue/penales (period>2) dejamos quieto el marcador de los 90'.
+        if ((!ev.period || ev.period <= 2) && Number.isFinite(ev.hs) && Number.isFinite(ev.as)) {
+          const sealAt = (st.realitySealAt || {})[m.id];
+          const sealed = sealAt != null && Date.now() >= sealAt;
+          const cur = (st.results || {})[m.id];
+          if (!sealed && (!cur || +cur[0] !== ev.hs || +cur[1] !== ev.as)) {
+            if (!dry) { st.results = st.results || {}; st.results[m.id] = [ev.hs, ev.as]; }
+            mchg = true;
+          }
+        }
+        // bandera "en vivo": true mientras ESPN diga 'in' (incluye alargue); false al terminar
+        const wantLive = ev.state === "in";
+        if (m.live !== wantLive) { if (!dry) m.live = wantLive; mchg = true; }
+      } else if (m.live === true) {
+        // estaba en vivo y ya no aparece en el marcador: dalo por terminado
+        if (!dry) m.live = false; mchg = true;
+      }
+
+      if (mchg) {
+        changed = true;
+        updated.push({ id: m.id, num: m.num, match: `${m.home} vs ${m.away}`,
+                       score: (st.results || {})[m.id], espn: ev ? ev.state : "gone" });
+      }
     }
 
-    if (!updated.length) return res.status(200).json({ updated: [], rev: doc.rev });
+    if (!changed) return res.status(200).json({ updated: [], rev: doc.rev });
     if (dry) return res.status(200).json({ dry: true, wouldUpdate: updated, rev: doc.rev });
 
     const newDoc = { rev: doc.rev + 1, state: st, savedAt: new Date().toISOString() };

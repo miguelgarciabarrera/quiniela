@@ -421,6 +421,7 @@
     border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
   }
   .seal-tag.wait { color: #7fa8d8; border-color: #2f4358; text-transform: none; letter-spacing: .2px; }
+  .seal-tag.live { color: var(--hot); border-color: #5a2615; text-transform: none; letter-spacing: .2px; }
   .m-note {
     display: block; font-size: 11px; line-height: 1.45; color: var(--muted);
     margin-top: 6px; padding: 7px 10px; border-left: 2px solid var(--accent);
@@ -1091,9 +1092,30 @@ function realityNotStarted(m) {
   return !!ko && Date.now() < ko;
 }
 
-// La Realidad se puede editar sólo con el partido ya iniciado y sin sellar
+// ¿el partido está en vivo? La bandera m.live la pone /api/livescore según ESPN
+// ('in' → true, 'post' → false). Sin bandera, caemos a la ventana de tiempo.
+function matchLive(m) {
+  if (!m || isRealitySealed(m)) return false;
+  if (m.live === true) {
+    const ko = matchKo(m);
+    if (ko && Date.now() > ko + 4 * 3600 * 1000) return false; // tope de seguridad ante banderas colgadas
+    return true;
+  }
+  if (m.live === false) return false; // la automatización ya vio el final
+  const ko = matchKo(m);
+  return !!ko && Date.now() >= ko && Date.now() < ko + COOK_WINDOW; // respaldo sin ESPN
+}
+
+// la automatización tiene el marcador: sólo cuando ESPN confirma 'in' (m.live===true).
+// NO bloqueamos por la ventana de respaldo, para no trabar partidos que ESPN no cubre.
+function autoDriving(m) {
+  return !!m && m.live === true && !isRealitySealed(m);
+}
+
+// La Realidad se edita a mano sólo con el partido iniciado, sin sellar y sin que la
+// automatización lo esté llevando en vivo (para evitar doble captura / pisadas).
 function realityEditable(m) {
-  return !!m && !isRealitySealed(m) && !realityNotStarted(m);
+  return !!m && !isRealitySealed(m) && !realityNotStarted(m) && !autoDriving(m);
 }
 
 // recalcula el cronómetro de sellado tras editar marcador o "se definió"
@@ -1478,7 +1500,8 @@ function renderMatches() {
       const dis = locked ? "disabled" : "";
       const sealed = isRealitySealed(m);
       const notStarted = realityNotStarted(m) && !sealed; // aún no arranca: no hay marcador
-      const resultDis = (sealed || notStarted) ? "disabled" : "";
+      const liveAuto = autoDriving(m); // ESPN lleva el marcador en vivo: no captura a mano
+      const resultDis = (sealed || notStarted || liveAuto) ? "disabled" : "";
       const sealAt = (state.realitySealAt || {})[m.id];
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       const penWin = (state.penWinner || {})[m.id];
@@ -1531,7 +1554,7 @@ function renderMatches() {
         </span>
         ${m.extra ? defControl(m.id, null) : ""}
         ${m.extra ? penWinnerControl(m.id) : ""}
-        ${sealed ? `<span class="seal-tag">🔒 Cerrado</span>` : notStarted ? `<span class="seal-tag wait">⏳ se abre al pitido</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
+        ${sealed ? `<span class="seal-tag">🔒 Cerrado</span>` : notStarted ? `<span class="seal-tag wait">⏳ se abre al pitido</span>` : liveAuto ? `<span class="seal-tag live">⚡ marcador en vivo (ESPN)</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
       </td></tr>`;
     }
     html += `</table></div></div>`;
@@ -1569,11 +1592,7 @@ const COOK_WINDOW = 150 * 60 * 1000; // ~partido + sobremesa
 function renderCooking() {
   const el = document.getElementById("cookingStrip");
   if (!el) return;
-  const now = Date.now();
-  const cooking = allMatches().filter(m => {
-    const ko = matchKo(m);
-    return ko && now >= ko && now < ko + COOK_WINDOW && !isRealitySealed(m);
-  }).sort((a, b) => matchKo(a) - matchKo(b));
+  const cooking = allMatches().filter(m => matchLive(m)).sort((a, b) => matchKo(a) - matchKo(b));
   if (!cooking.length) { el.innerHTML = ""; return; }
   const cards = cooking.map(m => {
     const r = state.results[m.id];
@@ -2004,11 +2023,7 @@ setInterval(renderActivity, 60000);  // mantiene fresco el "hace X" sin esperar 
 // idempotente: sólo escribe si cambió, y no sella (el humano confirma el 90').
 let liveScoreBusy = false;
 function anyLiveNow() {
-  const now = Date.now();
-  return allMatches().some(m => {
-    const ko = matchKo(m);
-    return ko && now >= ko && now < ko + COOK_WINDOW && !isRealitySealed(m);
-  });
+  return allMatches().some(m => matchLive(m));
 }
 async function pollLiveScores() {
   if (document.hidden || liveScoreBusy || !anyLiveNow()) return;
