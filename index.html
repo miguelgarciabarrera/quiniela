@@ -157,6 +157,22 @@
   .rules { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
   .rules b { font-weight: 700; }
 
+  /* foto discreta de la tabla al entrar a cada jornada */
+  .pre-standings {
+    margin: 20px 0 6px; padding: 7px 13px; border-radius: 8px;
+    background: #0e1513; border: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 9px;
+    font-size: 12px; color: var(--muted);
+  }
+  .pre-standings .pre-label {
+    text-transform: uppercase; letter-spacing: .7px; font-size: 10px; font-weight: 700;
+    color: #6b7d72; margin-right: 3px;
+  }
+  .pre-standings .pre-p { white-space: nowrap; }
+  .pre-standings .pre-p b { color: var(--text); font-weight: 600; }
+  .pre-standings .pre-pts { color: var(--accent); font-weight: 700; }
+  .pre-standings .pre-dot { color: #34443b; }
+
   /* 🔥 racha que quema */
   .hot-badge {
     font-size: 12px; font-weight: 700; color: var(--hot);
@@ -654,6 +670,8 @@ const NAMES = ["Emilio", "Ulises", "Daniel", "Diego", "Miguel"];
 // fechas cerradas: día completo congelado. Agrega fechas conforme avance el torneo.
 const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14 Jun", "Lun 15 Jun", "Mar 16 Jun", "Mié 17 Jun", "Jue 18 Jun", "Vie 19 Jun", "Sáb 20 Jun", "Dom 21 Jun", "Lun 22 Jun", "Mar 23 Jun", "Mié 24 Jun", "Jue 25 Jun", "Vie 26 Jun", "Sáb 27 Jun", "Dom 28 Jun"]);
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
+// desde esta jornada se muestra la foto discreta "antes de esta jornada" entre días
+const SNAPSHOT_FROM_DATE = "Mié 1 Jul";
 const LOCKED_MATCHES = new Set(["m21", "m22", "m29", "m30", "m31", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m44", "m61", "m62", "m63", "m64", "x1782660023665"]); // x... = 1er playoff (32vos), Canadá-Sudáfrica Dom 28 Jun
 const LOCKED_RESULTS = new Set(["m29", "m30", "m31", "m32", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m49", "m50", "m51", "m52", "m55", "m56", "m57", "m59", "m60", "m61", "m62", "m63", "m64", "m65", "m66", "m67", "m68", "m69", "m70", "m71", "m72", "x1782660023665", "x1782682718262"]); // La Realidad cerrada (x1782682718262 = #76 Brasil-Japón)
 const PROFECIAS_LOCKED = true; // ventana cerrada — las profecías ya no se pueden editar
@@ -1117,9 +1135,13 @@ function scorePick(pick, result, penWinner) {
   return 0;
 }
 
-function totals() {
+// filterFn opcional: limita el cálculo a un subconjunto de partidos (p. ej. los de
+// jornadas anteriores, para la foto "antes de esta jornada"). Sin argumento = todos.
+function totals(filterFn) {
+  const use = filterFn || (() => true);
   const t = state.players.map(() => ({ pts: 0, exact: 0, winner: 0, bonus: 0, streak: 0 }));
   for (const m of allMatches()) {
+    if (!use(m)) continue;
     const result = state.results[m.id];
     const dr = state.defResults[m.id]; // cómo se definió (sólo eliminatorias)
     if (!result && !dr) continue;
@@ -1137,7 +1159,7 @@ function totals() {
   }
   // 🔥 racha viva: aciertos (E o C) consecutivos hasta el último partido juzgado.
   // SOLO cosmético: NO suma puntos (sumarlo reescribía retroactivamente toda la tabla).
-  const judged = allMatches().filter(m => state.results[m.id]).sort((a, b) => a.num - b.num);
+  const judged = allMatches().filter(m => use(m) && state.results[m.id]).sort((a, b) => a.num - b.num);
   state.players.forEach((_, i) => {
     let run = 0;
     for (const m of judged) {
@@ -1399,6 +1421,12 @@ function renderMatches() {
     (byDate[m.date] = byDate[m.date] || []).push(m);
   }
 
+  // orden cronológico de fechas (independiente del filtro visible) para la foto pre-jornada
+  const orderedDates = [...new Set(allMatches().map(m => m.date))];
+  const dateIdx = {};
+  orderedDates.forEach((d, i) => { dateIdx[d] = i; });
+  const snapFromIdx = orderedDates.indexOf(SNAPSHOT_FROM_DATE);
+
   let html = "";
   let lastPhase = null;
   for (const [date, matches] of Object.entries(byDate)) {
@@ -1413,6 +1441,16 @@ function renderMatches() {
         <span class="pb-title">${esc(theme.label)}</span>
         <span class="pb-sub">${theme.sub}</span>
       </div>`;
+    }
+    // foto discreta de la tabla al entrar a esta jornada (desde SNAPSHOT_FROM_DATE)
+    if (snapFromIdx >= 0 && dateIdx[date] >= snapFromIdx) {
+      const before = totals(m => dateIdx[m.date] < dateIdx[date]);
+      const snap = state.players.map((n, i) => ({ n, pts: before[i].pts })).sort((a, b) => b.pts - a.pts);
+      if (snap.some(p => p.pts > 0)) {
+        html += `<div class="pre-standings"><span class="pre-label">Antes de esta jornada</span>` +
+          snap.map(p => `<span class="pre-p"><b>${esc(p.n)}</b> <span class="pre-pts">${p.pts}</span></span>`).join(`<span class="pre-dot">·</span>`) +
+          `</div>`;
+      }
     }
     const dateLocked = LOCKED_DATES.has(date);
     html += `<div class="date-section"><div class="date-title">${esc(date)}${dateLocked ? ` <span class="lock-tag">🔒 cerrado</span>` : ""}</div>
