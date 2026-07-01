@@ -420,6 +420,7 @@
     letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
     border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
   }
+  .seal-tag.wait { color: #7fa8d8; border-color: #2f4358; text-transform: none; letter-spacing: .2px; }
   .m-note {
     display: block; font-size: 11px; line-height: 1.45; color: var(--muted);
     margin-top: 6px; padding: 7px 10px; border-left: 2px solid var(--accent);
@@ -1084,6 +1085,17 @@ function isRealitySealed(m) {
   return at != null && Date.now() >= at;
 }
 
+// el partido aún no arranca: no hay marcador que capturar todavía
+function realityNotStarted(m) {
+  const ko = m && matchKo(m);
+  return !!ko && Date.now() < ko;
+}
+
+// La Realidad se puede editar sólo con el partido ya iniciado y sin sellar
+function realityEditable(m) {
+  return !!m && !isRealitySealed(m) && !realityNotStarted(m);
+}
+
 // recalcula el cronómetro de sellado tras editar marcador o "se definió"
 function bumpRealitySeal(matchId) {
   state.realitySealAt = state.realitySealAt || {};
@@ -1340,7 +1352,7 @@ function defControl(matchId, i) {
   const cur = isReal ? dr : (state.defs[matchId] || {})[i];
   const m = allMatches().find(x => x.id === matchId);
   const dis = isReal
-    ? (isRealitySealed(m) ? "disabled" : "")
+    ? (realityEditable(m) ? "" : "disabled")
     : (m && isLocked(m) ? "disabled" : "");
   const fn = isReal ? `setDefResult('${matchId}',` : `setDef('${matchId}',${i},`;
   const btns = DEF_OPTS.map(([v, l]) => {
@@ -1405,7 +1417,7 @@ function penWinnerControl(matchId) {
   if (!m || !m.extra || !r || r[0] === "" || r[1] === "" || r[0] == null || r[1] == null) return "";
   if (+r[0] !== +r[1]) return ""; // sólo aplica a empates
   const cur = (state.penWinner || {})[matchId];
-  const dis = isRealitySealed(m) ? "disabled" : "";
+  const dis = realityEditable(m) ? "" : "disabled";
   const opts = [["home", m.home], ["away", m.away]];
   const btns = opts.map(([v, l]) =>
     `<button class="def-opt${cur === v ? " active" : ""}" ${dis} onclick="setPenWinner('${matchId}','${v}')">${esc(l)}</button>`
@@ -1465,7 +1477,8 @@ function renderMatches() {
       const locked = isLocked(m);
       const dis = locked ? "disabled" : "";
       const sealed = isRealitySealed(m);
-      const resultDis = sealed ? "disabled" : "";
+      const notStarted = realityNotStarted(m) && !sealed; // aún no arranca: no hay marcador
+      const resultDis = (sealed || notStarted) ? "disabled" : "";
       const sealAt = (state.realitySealAt || {})[m.id];
       let homeHtml = teamHtml(m.home), awayHtml = teamHtml(m.away);
       const penWin = (state.penWinner || {})[m.id];
@@ -1518,7 +1531,7 @@ function renderMatches() {
         </span>
         ${m.extra ? defControl(m.id, null) : ""}
         ${m.extra ? penWinnerControl(m.id) : ""}
-        ${sealed ? `<span class="seal-tag">🔒 Cerrado</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
+        ${sealed ? `<span class="seal-tag">🔒 Cerrado</span>` : notStarted ? `<span class="seal-tag wait">⏳ se abre al pitido</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
       </td></tr>`;
     }
     html += `</table></div></div>`;
@@ -1731,7 +1744,7 @@ function setPick(matchId, playerIdx, side, value) {
 
 function setResult(matchId, side, value) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && isRealitySealed(lm)) { renderMatches(); return; }
+  if (lm && !realityEditable(lm)) { renderMatches(); return; }
   const r = state.results[matchId] = state.results[matchId] || ["", ""];
   r[side] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
   if (r[0] === "" && r[1] === "") delete state.results[matchId];
@@ -1757,7 +1770,7 @@ function setDef(matchId, playerIdx, value) {
 // eliminatorias: cómo se definió de verdad (La Realidad)
 function setDefResult(matchId, value) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && isRealitySealed(lm)) { renderMatches(); return; }
+  if (lm && !realityEditable(lm)) { renderMatches(); return; }
   if (state.defResults[matchId] === value) delete state.defResults[matchId]; // volver a tocar = quitar
   else state.defResults[matchId] = value;
   bumpRealitySeal(matchId);
@@ -1767,7 +1780,7 @@ function setDefResult(matchId, value) {
 // eliminatorias empatadas: registra quién ganó la tanda de penales (quién avanza)
 function setPenWinner(matchId, side) {
   const lm = allMatches().find(x => x.id === matchId);
-  if (lm && isRealitySealed(lm)) { renderMatches(); return; }
+  if (lm && !realityEditable(lm)) { renderMatches(); return; }
   state.penWinner = state.penWinner || {};
   if (state.penWinner[matchId] === side) delete state.penWinner[matchId]; // volver a tocar = quitar
   else state.penWinner[matchId] = side;
