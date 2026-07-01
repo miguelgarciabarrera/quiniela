@@ -1998,6 +1998,31 @@ pullCloud(true);
 const POLL_MS = 30000;
 let pollTimer = setInterval(() => pullCloud(false), POLL_MS);
 setInterval(renderActivity, 60000);  // mantiene fresco el "hace X" sin esperar a otro cambio
+
+// ⚡ auto-relleno de marcadores en vivo: mientras haya un partido en su ventana,
+// pídele al backend (/api/livescore) que jale el marcador de ESPN al blob. Es
+// idempotente: sólo escribe si cambió, y no sella (el humano confirma el 90').
+let liveScoreBusy = false;
+function anyLiveNow() {
+  const now = Date.now();
+  return allMatches().some(m => {
+    const ko = matchKo(m);
+    return ko && now >= ko && now < ko + COOK_WINDOW && !isRealitySealed(m);
+  });
+}
+async function pollLiveScores() {
+  if (document.hidden || liveScoreBusy || !anyLiveNow()) return;
+  liveScoreBusy = true;
+  try {
+    const r = await fetch("/api/livescore");
+    const j = await r.json();
+    if (j && j.updated && j.updated.length) pullCloud(false); // refresca la UI con el marcador nuevo
+  } catch (e) { /* silencioso: si falla ESPN o el endpoint, seguimos a mano */ }
+  finally { liveScoreBusy = false; }
+}
+setInterval(pollLiveScores, 90000);
+pollLiveScores();
+
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     clearInterval(pollTimer); pollTimer = null;
