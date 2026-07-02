@@ -524,6 +524,8 @@
   .yapa-opt.sel { border-color: var(--gold); background: #15140c; }
   .yapa-opt.on { border-color: var(--accent); background: #15201a; }
   .yapa-opt:disabled { cursor: not-allowed; opacity: .7; }
+  .yapa-opt:active:not(:disabled) { border-color: var(--gold); background: #15140c; }
+  .yapa-sel-label { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
   .yapa-res { display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 700; }
   .yapa-res.hit { color: var(--green-b); }
   .yapa-res.miss { color: var(--red-b); }
@@ -702,7 +704,7 @@ const YAPA_PROPS = [
   { key: "red",   icon: "🟥", label: "Tarjeta roja",        pts: 3 },
   { key: "pen",   icon: "🎯", label: "Penal en el partido",  pts: 2 },
   { key: "early", icon: "⏱️", label: "Gol antes del 10′",    pts: 2 },
-  { key: "late",  icon: "🕘", label: "Gol después del 90′",   pts: 2 },
+  { key: "late",  icon: "🏁", label: "Gol después del 90′",   pts: 2 },
 ];
 const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
 function yapaOn(m) { return !!m && m.extra && matchNum(m) >= YAPA_FROM_NUM; }
@@ -1493,7 +1495,8 @@ function yapaControl(matchId, i) {
     const hit = !!yr[pick], p = YAPA_BY_KEY[pick];
     res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${p.pts}` : `−${YAPA_ANTE}`}</span>`;
   }
-  return `<span class="yapa"><span class="yapa-q">🎲 La Yapa</span><span class="yapa-opts">${opts}</span>${res}</span>`;
+  const selLabel = pick && !res ? `<span class="yapa-sel-label">${YAPA_BY_KEY[pick].label}</span>` : "";
+  return `<span class="yapa"><span class="yapa-q">🎲 La Yapa</span><span class="yapa-opts">${opts}</span>${selLabel}${res}</span>`;
 }
 
 function setYapa(matchId, i, key) {
