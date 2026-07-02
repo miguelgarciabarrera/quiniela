@@ -698,16 +698,25 @@ const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14
 const SNAPSHOT_FROM_DATE = "Mié 1 Jul";
 
 // 🎲 La Yapa: cada jugador elige 1 prop por partido de eliminatoria (desde #83, Jue 2 Jul).
-// Acierta = +pts (según rareza); falla = −1 de "ante". Se califica solo con ESPN al final.
+// Acierta = +pts (según rareza y fase); falla = −ante. Se califica solo con ESPN al final.
 const YAPA_FROM_NUM = 83;
-const YAPA_ANTE = 1;
 const YAPA_PROPS = [
-  { key: "red",   icon: "🟥", label: "Tarjeta roja",        pts: 3 },
-  { key: "pen",   icon: "🎯", label: "Penal en el partido",  pts: 2 },
-  { key: "early", icon: "⏱️", label: "Gol antes del 10′",    pts: 3 },
-  { key: "late",  icon: "🏁", label: "Gol después del 90′",   pts: 2 },
+  { key: "red",   icon: "🟥", label: "Tarjeta roja",        size: "big" },
+  { key: "pen",   icon: "🎯", label: "Penal en el partido",  size: "small" },
+  { key: "early", icon: "⏱️", label: "Gol antes del 10′",    size: "big" },
+  { key: "late",  icon: "🏁", label: "Gol después del 90′",   size: "small" },
 ];
 const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
+// menos partidos quedan, más vale cada prop. "base" cubre octavos y el 3er lugar.
+const YAPA_TIERS = {
+  base:     { big: 3, small: 2, ante: 1 },
+  rcuartos: { big: 5, small: 3, ante: 2 },
+  rsemis:   { big: 7, small: 4, ante: 3 },
+  rfinal:   { big: 10, small: 5, ante: 4 },
+};
+function yapaTier(m)        { return YAPA_TIERS[roundTheme(m?.group).cls] || YAPA_TIERS.base; }
+function yapaPts(m, key)    { return yapaTier(m)[YAPA_BY_KEY[key]?.size] || 0; }
+function yapaAnte(m)        { return yapaTier(m).ante; }
 function yapaOn(m) { return !!m && m.extra && matchNum(m) >= YAPA_FROM_NUM; }
 const LOCKED_MATCHES = new Set(["m21", "m22", "m29", "m30", "m31", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m44", "m61", "m62", "m63", "m64", "x1782660023665"]); // x... = 1er playoff (32vos), Canadá-Sudáfrica Dom 28 Jun
 const LOCKED_RESULTS = new Set(["m29", "m30", "m31", "m32", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m49", "m50", "m51", "m52", "m55", "m56", "m57", "m59", "m60", "m61", "m62", "m63", "m64", "m65", "m66", "m67", "m68", "m69", "m70", "m71", "m72", "x1782660023665", "x1782682718262"]); // La Realidad cerrada (x1782682718262 = #76 Brasil-Japón)
@@ -1237,8 +1246,8 @@ function totals(filterFn) {
       if (VETOED_PICKS[m.id]?.has(i)) return;
       const pick = (state.yapa?.[m.id] || {})[i];
       if (!pick) return;
-      if (yr[pick]) t[i].pts += (YAPA_BY_KEY[pick]?.pts || 0);
-      else t[i].pts -= YAPA_ANTE;
+      if (yr[pick]) t[i].pts += yapaPts(m, pick);
+      else t[i].pts -= yapaAnte(m);
     });
   }
 
@@ -1487,15 +1496,17 @@ function yapaControl(matchId, i) {
   const pick = (state.yapa?.[matchId] || {})[i];
   const locked = isLocked(m);
   const yr = (state.yapaResult || {})[matchId];
+  const ante = yapaAnte(m);
   const opts = YAPA_PROPS.map(p => {
     const sel = pick === p.key;
-    const badge = sel ? ` <b>+${p.pts}</b> / <b class="miss">−${YAPA_ANTE}</b>` : "";
-    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${p.pts} / −${YAPA_ANTE}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
+    const pts = yapaPts(m, p.key);
+    const badge = sel ? ` <b>+${pts}</b> / <b class="miss">−${ante}</b>` : "";
+    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${pts} / −${ante}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
   }).join("");
   let res = "";
   if (yr && pick) {
     const hit = !!yr[pick], p = YAPA_BY_KEY[pick];
-    res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${p.pts}` : `−${YAPA_ANTE}`}</span>`;
+    res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${yapaPts(m, pick)}` : `−${ante}`}</span>`;
   }
   const selLabel = pick && !res ? `<span class="yapa-sel-label">${YAPA_BY_KEY[pick].label}</span>` : "";
   return `<span class="yapa"><span class="yapa-q">🎲 La Yapa</span><span class="yapa-opts">${opts}</span>${selLabel}${res}</span>`;
