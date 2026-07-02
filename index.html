@@ -521,7 +521,9 @@
     cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
   }
   .yapa-opt b { font-size: 10px; color: var(--gold); font-weight: 700; }
+  .yapa-opt b.miss { color: var(--red-b); }
   .yapa-opt.sel { border-color: var(--gold); background: #15140c; }
+  .yapa-opt.sel.missed { border-color: var(--red-b); background: #201515; }
   .yapa-opt.on { border-color: var(--accent); background: #15201a; }
   .yapa-opt:disabled { cursor: not-allowed; opacity: .7; }
   .yapa-opt:active:not(:disabled) { border-color: var(--gold); background: #15140c; }
@@ -1488,7 +1490,10 @@ function yapaControl(matchId, i) {
   const yr = (state.yapaResult || {})[matchId];
   const opts = YAPA_PROPS.map(p => {
     const sel = pick === p.key;
-    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${p.pts} / −${YAPA_ANTE}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${sel ? ` <b>+${p.pts}</b>` : ""}</button>`;
+    const missed = sel && yr && !yr[p.key];
+    let badge = "";
+    if (sel) badge = ` <b class="${missed ? "miss" : ""}">${missed ? `−${YAPA_ANTE}` : `+${p.pts}`}</b>`;
+    return `<button class="yapa-opt${sel ? " sel" : ""}${missed ? " missed" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${p.pts} / −${YAPA_ANTE}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
   }).join("");
   let res = "";
   if (yr && pick) {
