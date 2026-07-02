@@ -1489,7 +1489,7 @@ function yapaControl(matchId, i) {
   const yr = (state.yapaResult || {})[matchId];
   const opts = YAPA_PROPS.map(p => {
     const sel = pick === p.key;
-    const badge = sel ? ` <b>+${p.pts}</b> <b class="miss">−${YAPA_ANTE}</b>` : "";
+    const badge = sel ? ` <b>+${p.pts}</b> / <b class="miss">−${YAPA_ANTE}</b>` : "";
     return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${p.pts} / −${YAPA_ANTE}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
   }).join("");
   let res = "";
