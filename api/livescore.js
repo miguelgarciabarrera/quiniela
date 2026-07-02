@@ -6,6 +6,8 @@ import { get, put } from "@vercel/blob";
 // un humano confirme y fije "se definió en" (que dispara el sellado normal).
 const DOC_PATH = "quiniela/state.json";
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard";
+const SUMMARY = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary";
+const YAPA_FROM_NUM = 83; // La Yapa arranca en el #83 (Jue 2 Jul)
 
 // nombres del pool (ES) -> nombres de ESPN (EN). Sólo los que difieren; el resto
 // se empareja por igualdad normalizada (sin acentos ni signos).
@@ -44,6 +46,7 @@ async function fetchEspn() {
       const h = comps.find((x) => x.homeAway === "home") || {};
       const a = comps.find((x) => x.homeAway === "away") || {};
       return {
+        id: e.id,
         state: e.status?.type?.state,          // pre | in | post
         period: e.status?.period,              // 1,2 = tiempos reglamentarios; 3+ = alargue/penales
         home: h.team?.displayName, away: a.team?.displayName,
@@ -51,6 +54,38 @@ async function fetchEspn() {
       };
     });
   } finally { clearTimeout(t); }
+}
+
+// minuto base del reloj de ESPN: "7'"→7, "90'+1'"→90, "45'+7'"→45
+function parseMin(clock) {
+  const mo = String(clock || "").match(/^(\d+)/);
+  return mo ? parseInt(mo[1], 10) : NaN;
+}
+
+// 🎲 califica La Yapa desde el detalle del partido (keyEvents): roja, penal,
+// gol antes del 10' (1er tiempo) y gol después del 90' (compensación del 2do).
+async function gradeYapa(eventId) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const j = await (await fetch(`${SUMMARY}?event=${eventId}`, { signal: ctrl.signal })).json();
+    const ke = j.keyEvents || [];
+    let red = false, pen = false, early = false, late = false;
+    for (const k of ke) {
+      const type = (k.type?.text || "").toLowerCase();
+      const clock = k.clock?.displayValue || "";
+      const period = k.period?.number;
+      const min = parseMin(clock);
+      if (type.includes("red card")) red = true;
+      if (type.includes("penalt") && Number.isFinite(min)) pen = true; // excluye la tanda (sin reloj)
+      if (k.scoringPlay) {
+        if (period === 1 && Number.isFinite(min) && min <= 10) early = true;
+        if (period === 2 && /^90'\+/.test(clock)) late = true;
+      }
+    }
+    return { red, pen, early, late };
+  } catch (e) { return null; }
+  finally { clearTimeout(t); }
 }
 
 export default async function handler(req, res) {
@@ -85,6 +120,12 @@ export default async function handler(req, res) {
         // bandera "en vivo": true mientras ESPN diga 'in' (incluye alargue); false al terminar
         const wantLive = ev.state === "in";
         if (m.live !== wantLive) { if (!dry) m.live = wantLive; mchg = true; }
+
+        // 🎲 La Yapa: al terminar (post) califica los props una sola vez, desde el detalle de ESPN
+        if (m.num >= YAPA_FROM_NUM && ev.state === "post" && !(st.yapaResult || {})[m.id]) {
+          const graded = await gradeYapa(ev.id);
+          if (graded) { if (!dry) { st.yapaResult = st.yapaResult || {}; st.yapaResult[m.id] = graded; } mchg = true; }
+        }
       } else if (m.live === true) {
         // estaba en vivo y ya no aparece en el marcador: dalo por terminado
         if (!dry) m.live = false; mchg = true;

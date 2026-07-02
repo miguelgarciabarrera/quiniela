@@ -511,6 +511,23 @@
   .comodin-armed { color: #3a2a06; background: var(--gold); border: 1px solid var(--gold); font-weight: 700; }
   .comodin-hint { display: block; margin-top: 3px; font-size: 9px; line-height: 1.3; color: #c9b274; }
 
+  /* 🎲 La Yapa: props por partido */
+  .yapa { display: block; margin-top: 7px; }
+  .yapa-q { display: block; font-size: 9px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  .yapa-opts { display: inline-flex; gap: 3px; flex-wrap: wrap; }
+  .yapa-opt {
+    font-family: inherit; font-size: 13px; line-height: 1; color: var(--text);
+    background: #0e1513; border: 1px solid #2c3a32; border-radius: 7px; padding: 4px 6px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+  }
+  .yapa-opt b { font-size: 10px; color: var(--gold); font-weight: 700; }
+  .yapa-opt.sel { border-color: var(--gold); background: #15140c; }
+  .yapa-opt.on { border-color: var(--accent); background: #15201a; }
+  .yapa-opt:disabled { cursor: not-allowed; opacity: .7; }
+  .yapa-res { display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 700; }
+  .yapa-res.hit { color: var(--green-b); }
+  .yapa-res.miss { color: var(--red-b); }
+
   .add-form {
     display: none; gap: 8px; flex-wrap: wrap; align-items: center;
     background: var(--panel); border: 1px solid var(--border);
@@ -676,6 +693,19 @@ const LOCKED_DATES = new Set(["Jue 11 Jun", "Vie 12 Jun", "Sáb 13 Jun", "Dom 14
 // partidos sueltos cerrados (por id) dentro de un día que sigue abierto.
 // desde esta jornada se muestra la foto discreta "antes de esta jornada" entre días
 const SNAPSHOT_FROM_DATE = "Mié 1 Jul";
+
+// 🎲 La Yapa: cada jugador elige 1 prop por partido de eliminatoria (desde #83, Jue 2 Jul).
+// Acierta = +pts (según rareza); falla = −1 de "ante". Se califica solo con ESPN al final.
+const YAPA_FROM_NUM = 83;
+const YAPA_ANTE = 1;
+const YAPA_PROPS = [
+  { key: "red",   icon: "🟥", label: "Tarjeta roja",        pts: 3 },
+  { key: "pen",   icon: "🎯", label: "Penal en el partido",  pts: 2 },
+  { key: "early", icon: "⏱️", label: "Gol antes del 10′",    pts: 2 },
+  { key: "late",  icon: "🕘", label: "Gol después del 90′",   pts: 2 },
+];
+const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
+function yapaOn(m) { return !!m && m.extra && matchNum(m) >= YAPA_FROM_NUM; }
 const LOCKED_MATCHES = new Set(["m21", "m22", "m29", "m30", "m31", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m44", "m61", "m62", "m63", "m64", "x1782660023665"]); // x... = 1er playoff (32vos), Canadá-Sudáfrica Dom 28 Jun
 const LOCKED_RESULTS = new Set(["m29", "m30", "m31", "m32", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m49", "m50", "m51", "m52", "m55", "m56", "m57", "m59", "m60", "m61", "m62", "m63", "m64", "m65", "m66", "m67", "m68", "m69", "m70", "m71", "m72", "x1782660023665", "x1782682718262"]); // La Realidad cerrada (x1782682718262 = #76 Brasil-Japón)
 const PROFECIAS_LOCKED = true; // ventana cerrada — las profecías ya no se pueden editar
@@ -1055,6 +1085,8 @@ function defaultState() {
     lastEdit: {},              // lastEdit[playerIdx] = timestamp (ms) del último cambio de sus pronósticos
     realitySealAt: {},         // realitySealAt[matchId] = epoch (ms) en que La Realidad se sella sola
     comodin: {},               // comodin[playerIdx][date] = matchId con "Doble o nada" (1 por jornada, eliminatorias)
+    yapa: {},                  // yapa[matchId][playerIdx] = clave del prop elegido (La Yapa)
+    yapaResult: {},            // yapaResult[matchId] = { red, pen, early, late } (qué pasó; auto o a mano)
   };
 }
 
@@ -1193,6 +1225,20 @@ function totals(filterFn) {
       if (dr && (state.defs[m.id] || {})[i] === dr) { t[i].pts += 1; t[i].bonus++; } // acertó 90'/alargue/penales (no se dobla)
     });
   }
+  // 🎲 La Yapa: prop por partido (desde #83). Acierto = +pts; fallo = −ante. Sólo si ya se calificó.
+  for (const m of allMatches()) {
+    if (!use(m) || !yapaOn(m)) continue;
+    const yr = (state.yapaResult || {})[m.id];
+    if (!yr) continue;
+    state.players.forEach((_, i) => {
+      if (VETOED_PICKS[m.id]?.has(i)) return;
+      const pick = (state.yapa?.[m.id] || {})[i];
+      if (!pick) return;
+      if (yr[pick]) t[i].pts += (YAPA_BY_KEY[pick]?.pts || 0);
+      else t[i].pts -= YAPA_ANTE;
+    });
+  }
+
   // 🔥 racha viva: aciertos (E o C) consecutivos hasta el último partido juzgado.
   // SOLO cosmético: NO suma puntos (sumarlo reescribía retroactivamente toda la tabla).
   const judged = allMatches().filter(m => use(m) && state.results[m.id]).sort((a, b) => a.num - b.num);
@@ -1431,6 +1477,58 @@ function setComodin(matchId, i) {
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
+// 🎲 La Yapa — selector de prop del jugador (1 por partido). Se bloquea al kickoff.
+function yapaControl(matchId, i) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!yapaOn(m)) return "";
+  const pick = (state.yapa?.[matchId] || {})[i];
+  const locked = isLocked(m);
+  const yr = (state.yapaResult || {})[matchId];
+  const opts = YAPA_PROPS.map(p => {
+    const sel = pick === p.key;
+    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${p.pts} / −${YAPA_ANTE}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${sel ? ` <b>+${p.pts}</b>` : ""}</button>`;
+  }).join("");
+  let res = "";
+  if (yr && pick) {
+    const hit = !!yr[pick], p = YAPA_BY_KEY[pick];
+    res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${p.pts}` : `−${YAPA_ANTE}`}</span>`;
+  }
+  return `<span class="yapa"><span class="yapa-q">🎲 La Yapa</span><span class="yapa-opts">${opts}</span>${res}</span>`;
+}
+
+function setYapa(matchId, i, key) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!yapaOn(m) || isLocked(m)) { renderMatches(); return; }
+  state.yapa = state.yapa || {};
+  const ym = state.yapa[matchId] = state.yapa[matchId] || {};
+  if (ym[i] === key) delete ym[i]; else ym[i] = key; // volver a tocar = quitar
+  if (!Object.keys(ym).length) delete state.yapa[matchId];
+  stampEdit(i, `🎲 La Yapa: ${ym[i] ? YAPA_BY_KEY[ym[i]].label : "(sin elegir)"} — [flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]`);
+  save(); renderLeaderboard(); renderMatches(); renderActivity();
+}
+
+// 🎲 La Yapa — "¿qué pasó?" en La Realidad. La automatización (ESPN) la llena al final;
+// esto queda como respaldo/corrección editable hasta que el partido se sella.
+function yapaGradeControl(matchId) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!yapaOn(m) || realityNotStarted(m)) return "";
+  const yr = (state.yapaResult || {})[matchId] || {};
+  const dis = realityEditable(m) ? "" : "disabled";
+  const btns = YAPA_PROPS.map(p =>
+    `<button class="yapa-opt${yr[p.key] ? " on" : ""}" ${dis} title="${p.label}: ${yr[p.key] ? "sí" : "no"}" onclick="toggleYapaResult('${matchId}','${p.key}')">${p.icon}</button>`
+  ).join("");
+  return `<span class="yapa"><span class="yapa-q">🎲 ¿Qué pasó?</span><span class="yapa-opts">${btns}</span></span>`;
+}
+
+function toggleYapaResult(matchId, key) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!yapaOn(m) || !realityEditable(m)) { renderMatches(); return; }
+  state.yapaResult = state.yapaResult || {};
+  const yr = state.yapaResult[matchId] = state.yapaResult[matchId] || {};
+  yr[key] = !yr[key];
+  save(); renderLeaderboard(); renderMatches();
+}
+
 // eliminatorias empatadas: quién ganó la tanda de penales (define al que avanza).
 // Sólo aparece en La Realidad cuando el marcador quedó empatado.
 function penWinnerControl(matchId) {
@@ -1543,6 +1641,7 @@ function renderMatches() {
           ${badge}
           ${m.extra && !vetoed ? defControl(m.id, i) : ""}
           ${m.extra && !vetoed ? comodinControl(m.id, i) : ""}
+          ${yapaOn(m) && !vetoed ? yapaControl(m.id, i) : ""}
         </td>`;
       });
       const r = result || ["", ""];
@@ -1554,6 +1653,7 @@ function renderMatches() {
         </span>
         ${m.extra ? defControl(m.id, null) : ""}
         ${m.extra ? penWinnerControl(m.id) : ""}
+        ${yapaOn(m) ? yapaGradeControl(m.id) : ""}
         ${sealed ? `<span class="seal-tag">🔒 Cerrado</span>` : notStarted ? `<span class="seal-tag wait">⏳ se abre al pitido</span>` : liveAuto ? `<span class="seal-tag live">⚡ marcador en vivo (ESPN)</span>` : (sealAt ? `<span class="seal-cd" data-seal="${sealAt}"></span>` : "")}
       </td></tr>`;
     }
