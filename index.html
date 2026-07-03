@@ -729,6 +729,16 @@ const MBAPPE_PROPS = [
   { key: "mbappe2", icon: "🚀🚀",  label: "Mbappé anota exactamente 2 goles", pts: 5,  ante: 2 },
   { key: "mbappe3", icon: "🚀🚀🚀", label: "Mbappé hace hat-trick (3+)",       pts: 15, ante: 5 },
 ];
+// 🇲🇽 México vs Inglaterra (octavos, Dom 5 Jul): los 5 le van a México contra todo
+// pronóstico. Tarjeta de pura ilusión — TODAS sin ante (riesgo cero) — pero se eligen
+// hasta 3 (ver YAPA_MAX_OVERRIDE) para que igual haya que decidir en quién creer.
+const MEXICO_PROPS = [
+  { key: "mx_quinones", icon: "⚽", label: "Quiñones anota gol",  pts: 5,  ante: 0 },
+  { key: "mx_mora",     icon: "🥅", label: "Mora anota gol",      pts: 10, ante: 0 },
+  { key: "mx_santi",    icon: "🔥", label: "Santi anota gol",     pts: 20, ante: 0 },
+  { key: "mx_first",    icon: "⚡", label: "México anota primero", pts: 6,  ante: 0 },
+  { key: "mx_curse",    icon: "🇲🇽", label: "México rompe la maldición del 5º partido", pts: 15, ante: 0 },
+];
 const YAPA_EXTRA = {
   "Argentina|Cabo Verde": [
     { key: "messi1pen", icon: "🐐", label: "Le hacen penal a Messi",      pts: 9,  ante: 3 },
@@ -739,12 +749,19 @@ const YAPA_EXTRA = {
   "España|Portugal": CR7_PROPS,
   "Paraguay|Francia": MBAPPE_PROPS,
   "Francia|Paraguay": MBAPPE_PROPS,
+  "México|Inglaterra": MEXICO_PROPS,
+  "Inglaterra|México": MEXICO_PROPS,
 };
 function matchProps(m)      { return m ? [...YAPA_PROPS, ...(YAPA_EXTRA[`${m.home}|${m.away}`] || [])] : YAPA_PROPS; }
 function matchPropByKey(m, key) { return matchProps(m).find(p => p.key === key); }
 // En juegos con props especiales cada quien puede elegir varios; el resto, 1 solo.
+// Algunos juegos permiten más (YAPA_MAX_OVERRIDE) — p. ej. la tarjeta ilusión de México.
 const YAPA_MULTI = 2;
-function yapaMax(m)         { return m && YAPA_EXTRA[`${m.home}|${m.away}`] ? YAPA_MULTI : 1; }
+const YAPA_MAX_OVERRIDE = { "México|Inglaterra": 3, "Inglaterra|México": 3 };
+function yapaMax(m) {
+  if (!m || !YAPA_EXTRA[`${m.home}|${m.away}`]) return 1;
+  return YAPA_MAX_OVERRIDE[`${m.home}|${m.away}`] || YAPA_MULTI;
+}
 // pick guardado: string (1 elección, legacy) o arreglo (multi). Normaliza a arreglo.
 function yapaPicksOf(matchId, i) {
   const v = (state.yapa?.[matchId] || {})[i];
