@@ -714,9 +714,9 @@ const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
 // sueñan pero no siempre pasa. ESPN pone a Portugal de local; registramos las dos
 // orientaciones por si acaso.
 const CR7_PROPS = [
-  { key: "cr7goal",  icon: "⚽",  label: "CR7 anota 1 gol",   pts: 2,  ante: 1 },
-  { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota 2 goles",  pts: 5,  ante: 2 },
-  { key: "cr7full",  icon: "💪",  label: "CR7 juega los 90'", pts: 12, ante: 6 },
+  { key: "cr7goal",  icon: "⚽",  label: "CR7 anota exactamente 1 gol",  pts: 2,  ante: 1 },
+  { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota exactamente 2 goles", pts: 5,  ante: 2 },
+  { key: "cr7full",  icon: "💪",  label: "CR7 juega los 90'",            pts: 12, ante: 6 },
 ];
 // 🚀 Mbappé en Paraguay vs Francia (octavos, Sáb 4 Jul): es el goleador del torneo.
 // Los tramos son EXACTOS y mutuamente excluyentes (1 / 2 / 3+) para que nadie se lleve
