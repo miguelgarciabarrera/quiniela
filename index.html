@@ -718,6 +718,14 @@ const CR7_PROPS = [
   { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota 2 goles",  pts: 5,  ante: 2 },
   { key: "cr7full",  icon: "💪",  label: "CR7 juega los 90'", pts: 12, ante: 6 },
 ];
+// 🚀 Mbappé en Paraguay vs Francia (octavos, Sáb 4 Jul): es el goleador del torneo,
+// así que "anota 1" es casi chalk (+2) y el hat-trick es la lotería (+15). ESPN pone
+// a Paraguay de local; registramos las dos orientaciones.
+const MBAPPE_PROPS = [
+  { key: "mbappe1", icon: "🚀",   label: "Mbappé anota 1 gol",   pts: 2,  ante: 1 },
+  { key: "mbappe2", icon: "🚀🚀",  label: "Mbappé anota 2 goles",  pts: 5,  ante: 2 },
+  { key: "mbappe3", icon: "🚀🚀🚀", label: "Mbappé hace hat-trick", pts: 15, ante: 5 },
+];
 const YAPA_EXTRA = {
   "Argentina|Cabo Verde": [
     { key: "messi1pen", icon: "🐐", label: "Le hacen penal a Messi",      pts: 9,  ante: 3 },
@@ -726,9 +734,19 @@ const YAPA_EXTRA = {
   ],
   "Portugal|España": CR7_PROPS,
   "España|Portugal": CR7_PROPS,
+  "Paraguay|Francia": MBAPPE_PROPS,
+  "Francia|Paraguay": MBAPPE_PROPS,
 };
 function matchProps(m)      { return m ? [...YAPA_PROPS, ...(YAPA_EXTRA[`${m.home}|${m.away}`] || [])] : YAPA_PROPS; }
 function matchPropByKey(m, key) { return matchProps(m).find(p => p.key === key); }
+// En juegos con props especiales cada quien puede elegir varios; el resto, 1 solo.
+const YAPA_MULTI = 2;
+function yapaMax(m)         { return m && YAPA_EXTRA[`${m.home}|${m.away}`] ? YAPA_MULTI : 1; }
+// pick guardado: string (1 elección, legacy) o arreglo (multi). Normaliza a arreglo.
+function yapaPicksOf(matchId, i) {
+  const v = (state.yapa?.[matchId] || {})[i];
+  return v == null ? [] : (Array.isArray(v) ? v : [v]);
+}
 // menos partidos quedan, más vale cada prop. "base" cubre octavos y el 3er lugar.
 const YAPA_TIERS = {
   base:     { big: 3, small: 2, ante: 1 },
@@ -1266,10 +1284,10 @@ function totals(filterFn) {
     if (!yr) continue;
     state.players.forEach((_, i) => {
       if (VETOED_PICKS[m.id]?.has(i)) return;
-      const pick = (state.yapa?.[m.id] || {})[i];
-      if (!pick) return;
-      if (yr[pick]) t[i].pts += yapaPts(m, pick);
-      else t[i].pts -= yapaAnte(m, pick);
+      for (const pick of yapaPicksOf(m.id, i)) {
+        if (yr[pick]) t[i].pts += yapaPts(m, pick);
+        else t[i].pts -= yapaAnte(m, pick);
+      }
     });
   }
 
@@ -1511,28 +1529,36 @@ function setComodin(matchId, i) {
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
-// 🎲 La Yapa — selector de prop del jugador (1 por partido). Se bloquea al kickoff.
+// 🎲 La Yapa — selector de props del jugador (1 por partido; en juegos especiales,
+// hasta yapaMax). Se bloquea al kickoff.
 function yapaControl(matchId, i) {
   const m = allMatches().find(x => x.id === matchId);
   if (!yapaOn(m)) return "";
-  const pick = (state.yapa?.[matchId] || {})[i];
+  const picks = yapaPicksOf(matchId, i);
   const locked = isLocked(m);
   const yr = (state.yapaResult || {})[matchId];
+  const max = yapaMax(m);
+  const full = picks.length >= max;
   const opts = matchProps(m).map(p => {
-    const sel = pick === p.key;
+    const sel = picks.includes(p.key);
     const pts = yapaPts(m, p.key);
     const a = yapaAnte(m, p.key);
     const badge = sel ? ` <b>+${pts}</b> / <b class="miss">−${a}</b>` : "";
-    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${pts} / −${a}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
+    // en multi, apaga las no elegidas al llegar al tope (tocar una elegida siempre la quita)
+    const dis = locked || (!sel && full && max > 1);
+    return `<button class="yapa-opt${sel ? " sel" : ""}" ${dis ? "disabled" : ""} title="${p.label} · +${pts} / −${a}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
   }).join("");
   let res = "";
-  if (yr && pick) {
-    const hit = !!yr[pick], p = matchPropByKey(m, pick);
-    res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${yapaPts(m, pick)}` : `−${yapaAnte(m, pick)}`}</span>`;
+  if (yr && picks.length) {
+    res = picks.map(pk => {
+      const hit = !!yr[pk], p = matchPropByKey(m, pk);
+      return `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${yapaPts(m, pk)}` : `−${yapaAnte(m, pk)}`}</span>`;
+    }).join(" ");
   }
-  const selP = pick && !res ? matchPropByKey(m, pick) : null;
-  const selLabel = selP ? `<span class="yapa-sel-label">${selP.label}</span>` : "";
-  return `<span class="yapa"><span class="yapa-q">🎲 La Yapa</span><span class="yapa-opts">${opts}</span>${selLabel}${res}</span>`;
+  const selLabel = (!res && picks.length)
+    ? `<span class="yapa-sel-label">${picks.map(pk => matchPropByKey(m, pk)?.label).filter(Boolean).join(" · ")}</span>` : "";
+  const q = max > 1 ? `🎲 La Yapa · elige hasta ${max}` : "🎲 La Yapa";
+  return `<span class="yapa"><span class="yapa-q">${q}</span><span class="yapa-opts">${opts}</span>${selLabel}${res}</span>`;
 }
 
 function setYapa(matchId, i, key) {
@@ -1540,9 +1566,18 @@ function setYapa(matchId, i, key) {
   if (!yapaOn(m) || isLocked(m)) { renderMatches(); return; }
   state.yapa = state.yapa || {};
   const ym = state.yapa[matchId] = state.yapa[matchId] || {};
-  if (ym[i] === key) delete ym[i]; else ym[i] = key; // volver a tocar = quitar
+  const max = yapaMax(m);
+  const cur = yapaPicksOf(matchId, i);
+  let next;
+  if (cur.includes(key)) next = cur.filter(k => k !== key);   // volver a tocar = quitar
+  else if (max === 1) next = [key];                           // 1 elección: reemplaza
+  else if (cur.length >= max) { renderMatches(); return; }    // multi en el tope: ignora
+  else next = [...cur, key];                                  // multi: agrega
+  if (!next.length) delete ym[i];
+  else ym[i] = max === 1 ? next[0] : next;                    // string en juegos de 1, arreglo en multi
   if (!Object.keys(ym).length) delete state.yapa[matchId];
-  stampEdit(i, `🎲 La Yapa: ${ym[i] ? matchPropByKey(m, ym[i])?.label : "(sin elegir)"} — [flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]`);
+  const labels = next.length ? next.map(k => matchPropByKey(m, k)?.label).filter(Boolean).join(" · ") : "(sin elegir)";
+  stampEdit(i, `🎲 La Yapa: ${labels} — [flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]`);
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
