@@ -61,9 +61,9 @@ function dateKey(str) {
 // etiqueta de ronda por número de partido (bracket fijo del Mundial 2026:
 // #73–88 R32, #89–96 R16, #97–100 CF, #101–102 SF, #103 3er, #104 final).
 function roundLabel(num) {
-  if (num <= 88) return "32vos";
-  if (num <= 96) return "16vos";
-  if (num <= 100) return "8vos";
+  if (num <= 88) return "16vos de Final";
+  if (num <= 96) return "octavos";
+  if (num <= 100) return "cuartos";
   if (num <= 102) return "semis";
   if (num === 103) return "3er lugar";
   return "final";

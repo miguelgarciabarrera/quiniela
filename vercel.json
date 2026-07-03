@@ -4,6 +4,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "crons": [
-    { "path": "/api/rollover", "schedule": "0 15 * * *" }
+    { "path": "/api/rollover", "schedule": "1 6 * * *" }
   ]
 }
