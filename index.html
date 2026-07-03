@@ -714,6 +714,7 @@ const YAPA_EXTRA = {
   "Argentina|Cabo Verde": [
     { key: "messi1pen", icon: "🐐", label: "Messi recibe 1 penal",   pts: 9,  ante: 3 },
     { key: "messi2pen", icon: "🐐🐐", label: "Messi recibe 2 penales", pts: 25, ante: 10 },
+    { key: "messi3pen", icon: "🐐🐐🐐", label: "Messi recibe 3 penales", pts: 50, ante: 25 },
   ],
 };
 function matchProps(m)      { return m ? [...YAPA_PROPS, ...(YAPA_EXTRA[`${m.home}|${m.away}`] || [])] : YAPA_PROPS; }
