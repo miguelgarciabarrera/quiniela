@@ -715,8 +715,11 @@ const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
 // orientaciones por si acaso.
 const CR7_PROPS = [
   { key: "cr7goal",  icon: "⚽",  label: "CR7 anota exactamente 1 gol",  pts: 2,  ante: 1 },
-  { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota exactamente 2 goles", pts: 5,  ante: 2 },
+  { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota 2 goles o más",       pts: 5,  ante: 2 },
   { key: "cr7full",  icon: "💪",  label: "CR7 juega los 90'",            pts: 12, ante: 6 },
+  // 🦈 Freebie: 2 jugadores van por boletos para ver el partido en vivo. Sin ante y
+  // fuera del tope de picks (bonus): no cuesta un espacio ni castiga si no entran.
+  { key: "sharks",   icon: "🦈🦈", label: "Los 2 tiburones entran al juego", pts: 5, ante: 0, bonus: true },
 ];
 // 🚀 Mbappé en Paraguay vs Francia (octavos, Sáb 4 Jul): es el goleador del torneo.
 // Los tramos son EXACTOS y mutuamente excluyentes (1 / 2 / 3+) para que nadie se lleve
@@ -747,6 +750,9 @@ function yapaPicksOf(matchId, i) {
   const v = (state.yapa?.[matchId] || {})[i];
   return v == null ? [] : (Array.isArray(v) ? v : [v]);
 }
+// props "bonus" (freebie): sin ante y fuera del tope de elecciones.
+function yapaIsBonus(m, key)  { return !!matchPropByKey(m, key)?.bonus; }
+function yapaRegCount(m, keys) { return keys.filter(k => !yapaIsBonus(m, k)).length; }
 // menos partidos quedan, más vale cada prop. "base" cubre octavos y el 3er lugar.
 const YAPA_TIERS = {
   base:     { big: 3, small: 2, ante: 1 },
@@ -1538,14 +1544,14 @@ function yapaControl(matchId, i) {
   const locked = isLocked(m);
   const yr = (state.yapaResult || {})[matchId];
   const max = yapaMax(m);
-  const full = picks.length >= max;
+  const full = yapaRegCount(m, picks) >= max;
   const opts = matchProps(m).map(p => {
     const sel = picks.includes(p.key);
     const pts = yapaPts(m, p.key);
     const a = yapaAnte(m, p.key);
     const badge = sel ? ` <b>+${pts}</b> / <b class="miss">−${a}</b>` : "";
-    // en multi, apaga las no elegidas al llegar al tope (tocar una elegida siempre la quita)
-    const dis = locked || (!sel && full && max > 1);
+    // en multi, apaga las normales no elegidas al llegar al tope; los freebie nunca se apagan
+    const dis = locked || (!sel && !p.bonus && full && max > 1);
     return `<button class="yapa-opt${sel ? " sel" : ""}" ${dis ? "disabled" : ""} title="${p.label} · +${pts} / −${a}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
   }).join("");
   let res = "";
@@ -1568,10 +1574,12 @@ function setYapa(matchId, i, key) {
   const ym = state.yapa[matchId] = state.yapa[matchId] || {};
   const max = yapaMax(m);
   const cur = yapaPicksOf(matchId, i);
+  const bonus = yapaIsBonus(m, key);
   let next;
   if (cur.includes(key)) next = cur.filter(k => k !== key);   // volver a tocar = quitar
-  else if (max === 1) next = [key];                           // 1 elección: reemplaza
-  else if (cur.length >= max) { renderMatches(); return; }    // multi en el tope: ignora
+  else if (bonus) next = [...cur, key];                       // freebie: siempre cabe, no ocupa espacio
+  else if (max === 1) next = [...cur.filter(k => yapaIsBonus(m, k)), key]; // 1 elección: reemplaza (conserva bonus)
+  else if (yapaRegCount(m, cur) >= max) { renderMatches(); return; }       // multi en el tope de picks normales
   else next = [...cur, key];                                  // multi: agrega
   if (!next.length) delete ym[i];
   else ym[i] = max === 1 ? next[0] : next;                    // string en juegos de 1, arreglo en multi
