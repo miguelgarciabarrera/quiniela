@@ -707,6 +707,17 @@ const YAPA_PROPS = [
   { key: "late",  icon: "🏁", label: "Gol después del 90′",   size: "small" },
 ];
 const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
+// 🐐 Props especiales por partido (broma privada): los penales que "la FIFA le regala"
+// a Messi. Llevan su propio pts (premio) y ante (lo que arriesgas) fijos, ignorando la
+// tarifa por fase. Se califican a mano en "¿Qué pasó?" (ESPN no los detecta).
+const YAPA_EXTRA = {
+  "Argentina|Cabo Verde": [
+    { key: "messi1pen", icon: "🐐", label: "Messi recibe 1 penal",   pts: 9,  ante: 3 },
+    { key: "messi2pen", icon: "🐐🐐", label: "Messi recibe 2 penales", pts: 25, ante: 10 },
+  ],
+};
+function matchProps(m)      { return m ? [...YAPA_PROPS, ...(YAPA_EXTRA[`${m.home}|${m.away}`] || [])] : YAPA_PROPS; }
+function matchPropByKey(m, key) { return matchProps(m).find(p => p.key === key); }
 // menos partidos quedan, más vale cada prop. "base" cubre octavos y el 3er lugar.
 const YAPA_TIERS = {
   base:     { big: 3, small: 2, ante: 1 },
@@ -715,8 +726,8 @@ const YAPA_TIERS = {
   rfinal:   { big: 10, small: 5, ante: 4 },
 };
 function yapaTier(m)        { return YAPA_TIERS[roundTheme(m?.group).cls] || YAPA_TIERS.base; }
-function yapaPts(m, key)    { return yapaTier(m)[YAPA_BY_KEY[key]?.size] || 0; }
-function yapaAnte(m)        { return yapaTier(m).ante; }
+function yapaPts(m, key)    { const p = matchPropByKey(m, key); return p?.pts ?? (yapaTier(m)[p?.size] || 0); }
+function yapaAnte(m, key)   { const p = key ? matchPropByKey(m, key) : null; return p?.ante ?? yapaTier(m).ante; }
 function yapaOn(m) { return !!m && m.extra && matchNum(m) >= YAPA_FROM_NUM; }
 const LOCKED_MATCHES = new Set(["m21", "m22", "m29", "m30", "m31", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m44", "m61", "m62", "m63", "m64", "x1782660023665"]); // x... = 1er playoff (32vos), Canadá-Sudáfrica Dom 28 Jun
 const LOCKED_RESULTS = new Set(["m29", "m30", "m31", "m32", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m49", "m50", "m51", "m52", "m55", "m56", "m57", "m59", "m60", "m61", "m62", "m63", "m64", "m65", "m66", "m67", "m68", "m69", "m70", "m71", "m72", "x1782660023665", "x1782682718262"]); // La Realidad cerrada (x1782682718262 = #76 Brasil-Japón)
@@ -1247,7 +1258,7 @@ function totals(filterFn) {
       const pick = (state.yapa?.[m.id] || {})[i];
       if (!pick) return;
       if (yr[pick]) t[i].pts += yapaPts(m, pick);
-      else t[i].pts -= yapaAnte(m);
+      else t[i].pts -= yapaAnte(m, pick);
     });
   }
 
@@ -1496,19 +1507,20 @@ function yapaControl(matchId, i) {
   const pick = (state.yapa?.[matchId] || {})[i];
   const locked = isLocked(m);
   const yr = (state.yapaResult || {})[matchId];
-  const ante = yapaAnte(m);
-  const opts = YAPA_PROPS.map(p => {
+  const opts = matchProps(m).map(p => {
     const sel = pick === p.key;
     const pts = yapaPts(m, p.key);
-    const badge = sel ? ` <b>+${pts}</b> / <b class="miss">−${ante}</b>` : "";
-    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${pts} / −${ante}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
+    const a = yapaAnte(m, p.key);
+    const badge = sel ? ` <b>+${pts}</b> / <b class="miss">−${a}</b>` : "";
+    return `<button class="yapa-opt${sel ? " sel" : ""}" ${locked ? "disabled" : ""} title="${p.label} · +${pts} / −${a}" onclick="setYapa('${matchId}',${i},'${p.key}')">${p.icon}${badge}</button>`;
   }).join("");
   let res = "";
   if (yr && pick) {
-    const hit = !!yr[pick], p = YAPA_BY_KEY[pick];
-    res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${yapaPts(m, pick)}` : `−${ante}`}</span>`;
+    const hit = !!yr[pick], p = matchPropByKey(m, pick);
+    res = `<span class="yapa-res ${hit ? "hit" : "miss"}">${p.icon} ${hit ? `+${yapaPts(m, pick)}` : `−${yapaAnte(m, pick)}`}</span>`;
   }
-  const selLabel = pick && !res ? `<span class="yapa-sel-label">${YAPA_BY_KEY[pick].label}</span>` : "";
+  const selP = pick && !res ? matchPropByKey(m, pick) : null;
+  const selLabel = selP ? `<span class="yapa-sel-label">${selP.label}</span>` : "";
   return `<span class="yapa"><span class="yapa-q">🎲 La Yapa</span><span class="yapa-opts">${opts}</span>${selLabel}${res}</span>`;
 }
 
@@ -1519,7 +1531,7 @@ function setYapa(matchId, i, key) {
   const ym = state.yapa[matchId] = state.yapa[matchId] || {};
   if (ym[i] === key) delete ym[i]; else ym[i] = key; // volver a tocar = quitar
   if (!Object.keys(ym).length) delete state.yapa[matchId];
-  stampEdit(i, `🎲 La Yapa: ${ym[i] ? YAPA_BY_KEY[ym[i]].label : "(sin elegir)"} — [flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]`);
+  stampEdit(i, `🎲 La Yapa: ${ym[i] ? matchPropByKey(m, ym[i])?.label : "(sin elegir)"} — [flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]`);
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
@@ -1530,7 +1542,7 @@ function yapaGradeControl(matchId) {
   if (!yapaOn(m) || realityNotStarted(m)) return "";
   const yr = (state.yapaResult || {})[matchId] || {};
   const dis = realityEditable(m) ? "" : "disabled";
-  const btns = YAPA_PROPS.map(p =>
+  const btns = matchProps(m).map(p =>
     `<button class="yapa-opt${yr[p.key] ? " on" : ""}" ${dis} title="${p.label}: ${yr[p.key] ? "sí" : "no"}" onclick="toggleYapaResult('${matchId}','${p.key}')">${p.icon}</button>`
   ).join("");
   return `<span class="yapa"><span class="yapa-q">🎲 ¿Qué pasó?</span><span class="yapa-opts">${btns}</span></span>`;
