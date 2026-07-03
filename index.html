@@ -736,7 +736,9 @@ const MEXICO_PROPS = [
   { key: "mx_quinones", icon: "⚽", label: "Quiñones anota gol",  pts: 5,  ante: 0 },
   { key: "mx_mora",     icon: "🥅", label: "Mora anota gol",      pts: 10, ante: 0 },
   { key: "mx_santi",    icon: "🔥", label: "Santi anota gol",     pts: 20, ante: 0 },
+  { key: "mx_brace",    icon: "⚽⚽", label: "Un mexicano hace doblete", pts: 25, ante: 0 },
   { key: "mx_first",    icon: "⚡", label: "México anota primero", pts: 6,  ante: 0 },
+  { key: "mx_win90",    icon: "🏆", label: "México gana en los 90'", pts: 12, ante: 0 },
   { key: "mx_curse",    icon: "🇲🇽", label: "México rompe la maldición del 5º partido", pts: 15, ante: 0 },
 ];
 const YAPA_EXTRA = {
@@ -752,7 +754,15 @@ const YAPA_EXTRA = {
   "México|Inglaterra": MEXICO_PROPS,
   "Inglaterra|México": MEXICO_PROPS,
 };
-function matchProps(m)      { return m ? [...YAPA_PROPS, ...(YAPA_EXTRA[`${m.home}|${m.away}`] || [])] : YAPA_PROPS; }
+// Juegos que ocultan los props estándar (roja/penal/gol 10'/gol 90') para dejar solo
+// la tarjeta temática — p. ej. la ilusión mexicana, pura fiesta sin relleno.
+const YAPA_NO_STANDARD = new Set(["México|Inglaterra", "Inglaterra|México"]);
+function matchProps(m) {
+  if (!m) return YAPA_PROPS;
+  const key = `${m.home}|${m.away}`;
+  const base = YAPA_NO_STANDARD.has(key) ? [] : YAPA_PROPS;
+  return [...base, ...(YAPA_EXTRA[key] || [])];
+}
 function matchPropByKey(m, key) { return matchProps(m).find(p => p.key === key); }
 // En juegos con props especiales cada quien puede elegir varios; el resto, 1 solo.
 // Algunos juegos permiten más (YAPA_MAX_OVERRIDE) — p. ej. la tarjeta ilusión de México.
