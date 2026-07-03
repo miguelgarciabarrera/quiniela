@@ -718,13 +718,13 @@ const CR7_PROPS = [
   { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota 2 goles",  pts: 5,  ante: 2 },
   { key: "cr7full",  icon: "💪",  label: "CR7 juega los 90'", pts: 12, ante: 6 },
 ];
-// 🚀 Mbappé en Paraguay vs Francia (octavos, Sáb 4 Jul): es el goleador del torneo,
-// así que "anota 1" es casi chalk (+2) y el hat-trick es la lotería (+15). ESPN pone
-// a Paraguay de local; registramos las dos orientaciones.
+// 🚀 Mbappé en Paraguay vs Francia (octavos, Sáb 4 Jul): es el goleador del torneo.
+// Los tramos son EXACTOS y mutuamente excluyentes (1 / 2 / 3+) para que nadie se lleve
+// puntos fáciles con un "al menos 1". ESPN pone a Paraguay de local; dos orientaciones.
 const MBAPPE_PROPS = [
-  { key: "mbappe1", icon: "🚀",   label: "Mbappé anota 1 gol",   pts: 2,  ante: 1 },
-  { key: "mbappe2", icon: "🚀🚀",  label: "Mbappé anota 2 goles",  pts: 5,  ante: 2 },
-  { key: "mbappe3", icon: "🚀🚀🚀", label: "Mbappé hace hat-trick", pts: 15, ante: 5 },
+  { key: "mbappe1", icon: "🚀",   label: "Mbappé anota exactamente 1 gol",  pts: 2,  ante: 1 },
+  { key: "mbappe2", icon: "🚀🚀",  label: "Mbappé anota exactamente 2 goles", pts: 5,  ante: 2 },
+  { key: "mbappe3", icon: "🚀🚀🚀", label: "Mbappé hace hat-trick (3+)",       pts: 15, ante: 5 },
 ];
 const YAPA_EXTRA = {
   "Argentina|Cabo Verde": [
