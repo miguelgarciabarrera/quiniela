@@ -707,15 +707,25 @@ const YAPA_PROPS = [
   { key: "late",  icon: "🏁", label: "Gol después del 90′",   size: "small" },
 ];
 const YAPA_BY_KEY = Object.fromEntries(YAPA_PROPS.map(p => [p.key, p]));
-// 🐐 Props especiales por partido (broma privada): los penales que "la FIFA le regala"
-// a Messi. Llevan su propio pts (premio) y ante (lo que arriesgas) fijos, ignorando la
-// tarifa por fase. Se califican a mano en "¿Qué pasó?" (ESPN no los detecta).
+// 🐐 Props especiales por partido (broma privada): premio (pts) y ante fijos que
+// ignoran la tarifa por fase. Se califican a mano en "¿Qué pasó?" (ESPN no los detecta).
+// 7️⃣ CR7 en Portugal vs España (octavos, Lun 6 Jul): la broma para los cristianistas.
+// "Juega los 90'" pincha — CR7 (41) viene siendo relevado, así que apuesta por lo que
+// sueñan pero no siempre pasa. ESPN pone a Portugal de local; registramos las dos
+// orientaciones por si acaso.
+const CR7_PROPS = [
+  { key: "cr7goal",  icon: "⚽",  label: "CR7 anota 1 gol",   pts: 2,  ante: 1 },
+  { key: "cr7brace", icon: "⚽⚽", label: "CR7 anota 2 goles",  pts: 5,  ante: 2 },
+  { key: "cr7full",  icon: "💪",  label: "CR7 juega los 90'", pts: 12, ante: 5 },
+];
 const YAPA_EXTRA = {
   "Argentina|Cabo Verde": [
     { key: "messi1pen", icon: "🐐", label: "Le hacen penal a Messi",      pts: 9,  ante: 3 },
     { key: "messi2pen", icon: "🐐🐐", label: "Le hacen 2 penales a Messi",  pts: 25, ante: 10 },
     { key: "messi3pen", icon: "🐐🐐🐐", label: "Le hacen 3 penales a Messi",  pts: 50, ante: 25 },
   ],
+  "Portugal|España": CR7_PROPS,
+  "España|Portugal": CR7_PROPS,
 };
 function matchProps(m)      { return m ? [...YAPA_PROPS, ...(YAPA_EXTRA[`${m.home}|${m.away}`] || [])] : YAPA_PROPS; }
 function matchPropByKey(m, key) { return matchProps(m).find(p => p.key === key); }
