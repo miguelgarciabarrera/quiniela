@@ -797,6 +797,9 @@ function yapaPts(m, key)    { const p = matchPropByKey(m, key); return p?.pts ??
 function yapaAnte(m, key)   { const p = key ? matchPropByKey(m, key) : null; return p?.ante ?? yapaTier(m).ante; }
 function yapaOn(m) { return !!m && m.extra && matchNum(m) >= YAPA_FROM_NUM; }
 const LOCKED_MATCHES = new Set(["m21", "m22", "m29", "m30", "m31", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m44", "m61", "m62", "m63", "m64", "x1782660023665"]); // x... = 1er playoff (32vos), Canadá-Sudáfrica Dom 28 Jun
+// partidos que se mantienen abiertos aunque ya haya pasado el kickoff (se agregaron
+// tarde y aún no se recogieron picks). Vence la traba automática por hora de isLocked().
+const UNLOCKED_MATCHES = new Set(["x1783437156930", "x1783437156931"]); // #93 Portugal-España, #94 EE.UU.-Bélgica (Lun 6 Jul)
 const LOCKED_RESULTS = new Set(["m29", "m30", "m31", "m32", "m33", "m34", "m35", "m36", "m37", "m38", "m39", "m40", "m49", "m50", "m51", "m52", "m55", "m56", "m57", "m59", "m60", "m61", "m62", "m63", "m64", "m65", "m66", "m67", "m68", "m69", "m70", "m71", "m72", "x1782660023665", "x1782682718262"]); // La Realidad cerrada (x1782682718262 = #76 Brasil-Japón)
 const PROFECIAS_LOCKED = true; // ventana cerrada — las profecías ya no se pueden editar
 // picks anulados por el tribunal: { matchId: Set de índices de jugador }
@@ -925,6 +928,7 @@ const MATCH_NOTES = {};
 
 function isLocked(m) {
   if (LOCKED_DATES.has(m.date) || LOCKED_MATCHES.has(m.id)) return true;
+  if (UNLOCKED_MATCHES.has(m.id)) return false; // abierto a mano: ignora la traba por hora
   const ko = matchKo(m);
   return ko !== undefined && Date.now() >= ko;
 }
