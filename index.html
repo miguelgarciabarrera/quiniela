@@ -1165,6 +1165,7 @@ function defaultState() {
     defs: {},                  // defs[matchId][playerIdx] = "90"|"et"|"pen" (eliminatorias: cómo se define)
     defResults: {},            // defResults[matchId] = "90"|"et"|"pen" (cómo se definió de verdad)
     penWinner: {},             // penWinner[matchId] = "home"|"away" (eliminatorias empatadas: quién ganó/avanzó)
+    pickPen: {},               // pickPen[matchId][playerIdx] = "home"|"away" (pronóstico: quién avanza si el jugador predijo empate + penales)
     champs: {},                // champs[playerIdx] = equipo
     subs: {},                  // subs[playerIdx] = equipo subcampeón
     balons: {},                // balons[playerIdx] = jugador balón de oro
@@ -1280,14 +1281,16 @@ function allMatches() {
 // penWinner ("home"/"away"): en eliminatorias el marcador puede quedar empatado y
 // definirse por penales. En ese caso el "ganador" es quien avanzó, no el signo del
 // marcador, así que un jugador que predijo al equipo correcto se lleva los 3.
-function scorePick(pick, result, penWinner) {
+// pickPen ("home"/"away"): si el jugador predijo empate, es a quién apostó en la
+// tanda de penales — así también puede acertar al que avanza sin haber marcado un signo.
+function scorePick(pick, result, penWinner, pickPen) {
   if (!pick || !result) return null;
   const [ph, pa] = pick, [rh, ra] = result;
   if ([ph, pa, rh, ra].some(v => v === null || v === "" || isNaN(v))) return null;
   if (+ph === +rh && +pa === +ra) return 5;
   if (+rh === +ra && penWinner) {
-    if (+ph === +pa) return 0;                 // empató su pronóstico: no eligió ganador
-    return (+ph > +pa ? "home" : "away") === penWinner ? 3 : 0;
+    const predWinner = +ph === +pa ? pickPen : (+ph > +pa ? "home" : "away");
+    return predWinner === penWinner ? 3 : 0; // acertó quién avanza (por signo o por su tanda)
   }
   if (Math.sign(ph - pa) === Math.sign(rh - ra)) return 3;
   return 0;
@@ -1306,7 +1309,7 @@ function totals(filterFn) {
     state.players.forEach((_, i) => {
       if (VETOED_PICKS[m.id]?.has(i)) return; // anulado por el tribunal
       if (result) {
-        const s = scorePick((state.picks[m.id] || {})[i], result, (state.penWinner || {})[m.id]);
+        const s = scorePick((state.picks[m.id] || {})[i], result, (state.penWinner || {})[m.id], (state.pickPen?.[m.id] || {})[i]);
         const armed = m.extra && (state.comodin?.[i] || {})[m.date] === m.id; // 🃏 doble o nada
         if (s === 5) { t[i].pts += armed ? 10 : 5; t[i].exact++; }
         else if (s === 3) { t[i].pts += armed ? 6 : 3; t[i].winner++; }
@@ -1335,7 +1338,7 @@ function totals(filterFn) {
   state.players.forEach((_, i) => {
     let run = 0;
     for (const m of judged) {
-      const s = VETOED_PICKS[m.id]?.has(i) ? null : scorePick((state.picks[m.id] || {})[i], state.results[m.id], (state.penWinner || {})[m.id]);
+      const s = VETOED_PICKS[m.id]?.has(i) ? null : scorePick((state.picks[m.id] || {})[i], state.results[m.id], (state.penWinner || {})[m.id], (state.pickPen?.[m.id] || {})[i]);
       if (s === 5 || s === 3) run++;
       else run = 0;
     }
@@ -1348,7 +1351,7 @@ function totals(filterFn) {
 function formLine(playerIdx) {
   const judged = allMatches().filter(m => state.results[m.id]).sort((a, b) => a.num - b.num);
   const tiles = judged.slice(-5).map(m => {
-    const s = scorePick((state.picks[m.id] || {})[playerIdx], state.results[m.id], (state.penWinner || {})[m.id]);
+    const s = scorePick((state.picks[m.id] || {})[playerIdx], state.results[m.id], (state.penWinner || {})[m.id], (state.pickPen?.[m.id] || {})[playerIdx]);
     if (s === 5) return `<i class="e">E</i>`;
     if (s === 3) return `<i class="c">C</i>`;
     if (s === 0) return `<i class="x">X</i>`;
@@ -1392,7 +1395,7 @@ function renderStats(ranked, anyPoints) {
   const clownMatches = [];
   for (const m of judged) {
     const played = state.players
-      .map((_, i) => scorePick((state.picks[m.id] || {})[i], state.results[m.id], (state.penWinner || {})[m.id]))
+      .map((_, i) => scorePick((state.picks[m.id] || {})[i], state.results[m.id], (state.penWinner || {})[m.id], (state.pickPen?.[m.id] || {})[i]))
       .filter(s => s !== null);
     if (played.length && played.every(s => s === 0)) clownMatches.push(m);
   }
@@ -1403,7 +1406,7 @@ function renderStats(ranked, anyPoints) {
   const chipEls = [`<span class="stat-chip">⚽ <b>${judged.length}</b> partidos juzgados</span>`];
 
   const exactGamesFor = (idx) => judged
-    .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id], (state.penWinner || {})[m.id]) === 5)
+    .filter(m => !VETOED_PICKS[m.id]?.has(idx) && scorePick((state.picks[m.id] || {})[idx], state.results[m.id], (state.penWinner || {})[m.id], (state.pickPen?.[m.id] || {})[idx]) === 5)
     .sort((a, b) => a.num - b.num);
   const gameRow = (m) => {
     const r = state.results[m.id];
@@ -1523,6 +1526,24 @@ function defControl(matchId, i) {
     ? `<span class="def-badge hit">+1</span>`
     : `<span class="def-badge miss">+0</span>`;
   return `<span class="def-q">${isReal ? "Se definió en" : "¿Cómo se define?"}</span><span class="def-seg">${btns}</span>${tag}`;
+}
+
+// pronóstico de penales del jugador i: sólo aparece cuando predijo empate Y eligió
+// "Penales" como definición. Deja marcar a quién ve avanzando en la tanda.
+function pickPenControl(matchId, i) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (!m || !m.extra) return "";
+  const pick = (state.picks[matchId] || {})[i];
+  const isTie = pick && pick[0] !== "" && pick[1] !== "" && pick[0] != null && pick[1] != null && +pick[0] === +pick[1];
+  if (!isTie || (state.defs[matchId] || {})[i] !== "pen") return "";
+  const cur = (state.pickPen?.[matchId] || {})[i];
+  const dis = isLocked(m) ? "disabled" : "";
+  const pw = (state.penWinner || {})[matchId]; // el que avanzó de verdad (para marcar acierto)
+  const btns = [["home", m.home], ["away", m.away]].map(([v, l]) => {
+    const truth = (pw && pw === v && cur) ? " truth" : "";
+    return `<button class="def-opt${cur === v ? " active" : ""}${truth}" ${dis} onclick="setPickPen('${matchId}',${i},'${v}')">${esc(l)}</button>`;
+  }).join("");
+  return `<span class="def-q">¿Quién avanza?</span><span class="def-seg">${btns}</span>`;
 }
 
 // 🃏 Doble o nada: 1 comodín por jornada (fecha), opcional, sólo eliminatorias.
@@ -1738,7 +1759,7 @@ function renderMatches() {
       state.players.forEach((_, i) => {
         const vetoed = !!(VETOED_PICKS[m.id]?.has(i));
         const pick = (state.picks[m.id] || {})[i] || ["", ""];
-        const s = vetoed ? null : scorePick(pick, result, penWin);
+        const s = vetoed ? null : scorePick(pick, result, penWin, (state.pickPen?.[m.id] || {})[i]);
         const armed = !vetoed && m.extra && (state.comodin?.[i] || {})[m.date] === m.id; // 🃏
         const cls = vetoed ? "pts-0" : (s === 5 ? "pts-5" : s === 3 ? "pts-3" : s === 0 ? "pts-0" : "");
         const badge = vetoed
@@ -1754,6 +1775,7 @@ function renderMatches() {
           </span>
           ${badge}
           ${m.extra && !vetoed ? defControl(m.id, i) : ""}
+          ${m.extra && !vetoed ? pickPenControl(m.id, i) : ""}
           ${m.extra && !vetoed ? comodinControl(m.id, i) : ""}
           ${yapaOn(m) && !vetoed ? yapaControl(m.id, i) : ""}
         </td>`;
@@ -1816,7 +1838,7 @@ function renderCooking() {
     if (hasScore) {
       const chips = state.players.map((n, i) => {
         if (VETOED_PICKS[m.id]?.has(i)) return "";
-        const s = scorePick((state.picks[m.id] || {})[i], r, (state.penWinner || {})[m.id]);
+        const s = scorePick((state.picks[m.id] || {})[i], r, (state.penWinner || {})[m.id], (state.pickPen?.[m.id] || {})[i]);
         if (s === null) return "";
         const armed = m.extra && (state.comodin?.[i] || {})[m.date] === m.id;
         const defOk = m.extra && state.defResults[m.id] && (state.defs[m.id] || {})[i] === state.defResults[m.id];
@@ -2000,6 +2022,22 @@ function setDef(matchId, playerIdx, value) {
   save(); renderLeaderboard(); renderMatches(); renderActivity();
 }
 
+// eliminatorias: a quién ve avanzando el jugador si predijo empate + penales
+function setPickPen(matchId, playerIdx, side) {
+  const m = allMatches().find(x => x.id === matchId);
+  if (m && isLocked(m)) { renderMatches(); return; }
+  state.pickPen = state.pickPen || {};
+  const pp = state.pickPen[matchId] = state.pickPen[matchId] || {};
+  if (pp[playerIdx] === side) delete pp[playerIdx]; // volver a tocar = quitar
+  else pp[playerIdx] = side;
+  const team = side === "home" ? m?.home : m?.away;
+  stampEdit(playerIdx, m
+    ? `[flag:${FLAG_CODES[m.home] || ""}] vs [flag:${FLAG_CODES[m.away] || ""}]: avanza ${pp[playerIdx] ? team : "(sin elegir)"} (penales)`
+    : "penales");
+  if (!Object.keys(pp).length) delete state.pickPen[matchId];
+  save(); renderLeaderboard(); renderMatches(); renderActivity();
+}
+
 // eliminatorias: cómo se definió de verdad (La Realidad)
 function setDefResult(matchId, value) {
   const lm = allMatches().find(x => x.id === matchId);
@@ -2025,7 +2063,7 @@ function announceResult(matchId) {
   const result = state.results[matchId];
   if (!result || result[0] === "" || result[1] === "") return;
   const m = allMatches().find(x => x.id === matchId);
-  const scores = state.players.map((name, i) => ({ name, s: scorePick((state.picks[matchId] || {})[i], result, (state.penWinner || {})[matchId]) }));
+  const scores = state.players.map((name, i) => ({ name, s: scorePick((state.picks[matchId] || {})[i], result, (state.penWinner || {})[matchId], (state.pickPen?.[matchId] || {})[i]) }));
   const exact = scores.filter(x => x.s === 5).map(x => x.name);
   const played = scores.filter(x => x.s !== null);
   if (exact.length) {
