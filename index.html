@@ -1235,8 +1235,13 @@ function matchLive(m) {
 
 // la automatización tiene el marcador: sólo cuando ESPN confirma 'in' (m.live===true).
 // NO bloqueamos por la ventana de respaldo, para no trabar partidos que ESPN no cubre.
+// Tope de seguridad (igual que matchLive): pasadas 4 h del kickoff ignoramos la
+// bandera 'live' colgada, para que una marca de ESPN que nunca se apagó no deje
+// La Realidad trabada para siempre.
 function autoDriving(m) {
-  return !!m && m.live === true && !isRealitySealed(m);
+  if (!m || m.live !== true || isRealitySealed(m)) return false;
+  const ko = matchKo(m);
+  return !(ko && Date.now() > ko + 4 * 3600 * 1000);
 }
 
 // La Realidad se edita a mano sólo con el partido iniciado, sin sellar y sin que la
