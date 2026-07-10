@@ -1153,6 +1153,13 @@ const RANK_TITLES = [
   "El sótano",
 ];
 
+// empate en el último lugar: los coleros comparten un título según cuántos son
+function tiedLastTitle(n) {
+  if (n === 2) return "Dúo del sótano";
+  if (n === 3) return "Los Tres Chiflados";
+  return "El sótano está lleno";
+}
+
 let state = load();
 let realitySealTimer = null; // timeout que sella La Realidad al cumplirse su ventana
 
@@ -1374,12 +1381,16 @@ function renderLeaderboard() {
   // ranking de competencia: empatados en puntos comparten lugar, banner y medalla
   const leaderPts = ranked.length ? ranked[0].pts : 0;
   const lastPts = ranked.length ? ranked[ranked.length - 1].pts : 0;
+  const lastCount = ranked.filter(p => p.pts === lastPts).length;
   const rankOf = ranked.map((p, i) => 0);
   ranked.forEach((p, i) => { rankOf[i] = (i > 0 && p.pts === ranked[i - 1].pts) ? rankOf[i - 1] : i; });
   document.getElementById("leaderboard").innerHTML = ranked.map((p, i) => {
     const r = rankOf[i];
     const isFirst = anyPoints && p.pts === leaderPts;
     const isLast = anyPoints && p.pts === lastPts && lastPts !== leaderPts;
+    const title = !anyPoints ? "Invicto (por ahora)"
+      : (isLast && lastCount > 1) ? tiedLastTitle(lastCount)
+      : RANK_TITLES[r];
     return `
     <div class="lb-card ${isFirst ? "first" : ""} ${isLast ? "last" : ""}">
       <div class="lb-top">
@@ -1387,7 +1398,7 @@ function renderLeaderboard() {
         <span class="lb-name">${esc(p.name)}</span>
         <span class="lb-pts">${p.pts}</span>
       </div>
-      <span class="lb-title">${anyPoints ? RANK_TITLES[r] : "Invicto (por ahora)"}</span>
+      <span class="lb-title">${title}</span>
       <span class="lb-detail">${p.exact} exactos <span class="sep">·</span> ${p.winner} cerca${p.bonus ? ` <span class="sep">·</span> ${p.bonus} bonus` : ""}${anyPoints && p.pts < leaderPts ? ` <span class="sep">·</span> a −${leaderPts - p.pts} del trono` : ""}</span>
       <span class="lb-detail">racha ${formLine(p.idx)}${p.streak >= 3 ? `<span class="hot-badge" title="${p.streak} aciertos al hilo">🔥 ${p.streak}</span>` : ""}</span>
     </div>`;
